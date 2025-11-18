@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.judicius.bcdimensions.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "bc_dimensions.refmap.json",
+  "mixins": [
+    "RegionsRegisterMixin",
+    "HelloWorldMixin"
+  ],
+  "client": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}
+

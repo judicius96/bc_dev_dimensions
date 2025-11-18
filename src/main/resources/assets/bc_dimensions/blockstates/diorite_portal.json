@@ -1,0 +1,12 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "bc_dimensions:block/diorite_portal"
+    },
+    "axis=z": {
+      "model": "bc_dimensions:block/diorite_portal",
+      "y": 90,
+      "uvlock": true
+    }
+  }
+}

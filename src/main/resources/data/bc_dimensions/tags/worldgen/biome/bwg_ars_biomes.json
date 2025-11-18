@@ -1,0 +1,13 @@
+{
+  "replace": false,
+  "values": [
+    "biomeswevegone:weeping_witch_forest",
+    "biomeswevegone:ebony_woods",
+    "biomeswevegone:enchanted_tangle",
+    "ars_nouveau:archwood_forest",
+    "ars_elemental:flashing_forest",
+    "ars_elemental:blazing_forest",
+    "ars_elemental:cascading_forest",
+    "ars_elemental:flourishing_forest"
+  ]
+}

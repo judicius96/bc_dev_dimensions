@@ -1,0 +1,10 @@
+{
+  "type": "forge:remove_features",
+  "biomes": "#minecraft:is_overworld",
+  "steps": [
+    "lakes"
+  ],
+  "features": [
+    "minecraft:lake_lava_surface"
+  ]
+}

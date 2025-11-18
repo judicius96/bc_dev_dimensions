@@ -1,0 +1,10 @@
+{
+  "type": "forge:add_spawns",
+  "biomes": "#bc_dimensions:is_bwg",
+  "spawners": {
+    "type": "ars_nouveau:whirlisprig",
+    "maxCount": 2,
+    "minCount": 1,
+    "weight": 5
+  }
+}

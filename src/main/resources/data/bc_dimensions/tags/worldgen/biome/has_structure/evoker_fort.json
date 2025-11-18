@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "#bc_dimensions:is_bwg_forest",
+    "#bc_dimensions:is_bwg_plains",
+    "#bc_dimensions:is_bwg_desert"
+  ]
+}

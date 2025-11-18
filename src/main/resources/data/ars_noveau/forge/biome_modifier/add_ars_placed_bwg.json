@@ -1,0 +1,26 @@
+{
+  "type": "forge:remove_features",
+  "biomes": "#bc_dimensions:is_bwg",
+  "features": [
+    "ars_elemental:simple_flashing",
+    "ars_elemental:flashing_archwood",
+    "ars_elemental:common_flashing_archwood",
+    "ars_elemental:common_flashing",
+    "ars_elemental:cluster_vexing_archwood",
+    "ars_elemental:cluster_flourishing_archwood",
+    "ars_elemental:cluster_flashing_archwood",
+    "ars_elemental:cluster_cascading_archwood",
+    "ars_elemental:cluster_blazing_archwood",
+    "ars_nouveau:placed_vexing_tree",
+    "ars_nouveau:placed_mixed_archwoods",
+    "ars_nouveau:placed_lights",
+    "ars_nouveau:placed_flourishing_tree",
+    "ars_nouveau:placed_dense_archwoods",
+    "ars_nouveau:placed_cascading_tree",
+    "ars_nouveau:placed_blazing_tree",
+    "ars_nouveau:mojang_flowers",
+    "ars_nouveau:mojang_grass"
+
+  ],
+  "step": "vegetal_decoration"
+}

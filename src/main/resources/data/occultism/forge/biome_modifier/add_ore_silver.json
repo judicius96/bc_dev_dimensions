@@ -1,0 +1,6 @@
+{
+  "type": "forge:add_features",
+  "biomes": "#bc_dimensions:is_bwg",
+  "features": "occultism:ore_silver",
+  "step": "underground_ores"
+}

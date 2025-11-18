@@ -1,0 +1,9 @@
+{
+  "replace": false,
+  "values": [
+    "biomeswevegone:mojave_desert",
+    "biomeswevegone:rugged_badlands",
+    "biomeswevegone:sierra_badlands",
+    "biomeswevegone:windswept_desert"
+  ]
+}

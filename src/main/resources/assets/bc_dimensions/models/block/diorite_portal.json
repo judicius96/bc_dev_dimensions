@@ -1,0 +1,16 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "particle": "bc_dimensions:block/diorite_portal"
+  },
+  "elements": [
+    {
+      "from": [0, 0, 7.99],
+      "to": [16, 16, 8.01],
+      "faces": {
+        "north": { "texture": "#particle" },
+        "south": { "texture": "#particle" }
+      }
+    }
+  ]
+}

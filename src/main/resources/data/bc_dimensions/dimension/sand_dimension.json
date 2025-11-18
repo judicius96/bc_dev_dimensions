@@ -1,0 +1,38 @@
+{
+  "type": "bc_dimensions:sand",
+  "generator": {
+    "type": "minecraft:noise",
+    "seed": 0,
+    "settings": "bc_dimensions:sand_overworld",
+    "biome_source": {
+      "type": "minecraft:multi_noise",
+      "seed": 0,
+      "biomes": [
+        {
+          "biome": "bc_dimensions:sand_desert",
+          "parameters": {
+            "temperature": 1.8,
+            "humidity": 0.0,
+            "continentalness": 0.3,
+            "erosion": 0.6,
+            "weirdness": -0.2,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "bc_dimensions:sand_eroded_badlands",
+          "parameters": {
+            "temperature": 2.0,
+            "humidity": 0.0,
+            "continentalness": 0.5,
+            "erosion": -0.95,
+            "weirdness": 0.1,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "has_precipitation": false,
+  "temperature": 2.0,
+  "downfall": 0.0,
+
+  "effects": {
+    "sky_color": 7254527,
+    "fog_color": 12638463,
+    "water_color": 4159204,
+    "water_fog_color": 329011,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "music": {
+      "sound": "minecraft:music.overworld.desert",
+      "min_delay": 12000,
+      "max_delay": 24000,
+      "replace_current_music": false
+    }
+  },
+
+  "carvers": {
+    "air": [
+      "minecraft:cave",
+      "minecraft:cave_extra_underground",
+      "minecraft:canyon"
+    ]
+  },
+
+  "spawn_costs": {},
+
+  "spawners": {
+    "creature": [
+      { "type": "minecraft:rabbit", "weight": 4, "minCount": 2, "maxCount": 3 }
+    ],
+    "monster": [
+      { "type": "minecraft:skeleton", "weight": 100, "minCount": 4, "maxCount": 4 },
+      { "type": "minecraft:husk", "weight": 80, "minCount": 4, "maxCount": 4 }
+    ],
+    "ambient": [
+      { "type": "minecraft:bat", "weight": 10, "minCount": 8, "maxCount": 8 }
+    ],
+    "water_creature": [],
+    "water_ambient": [],
+    "axolotls": [],
+    "misc": []
+  },
+
+  "features": [
+    [],                                                     // 0 RAW_GENERATION
+    [],                                                     // 1 LAKES (keep empty: no lakes)
+    [                                                       // 2 LOCAL_MODIFICATIONS
+      "minecraft:disk_sand",
+      "minecraft:disk_clay"
+    ],
+    [                                                       // 3 UNDERGROUND_STRUCTURES
+      "minecraft:fossil_upper",
+      "minecraft:fossil_lower"
+    ],
+    [],                                                     // 4 SURFACE_STRUCTURES
+    [],                                                     // 5 UNDERGROUND_ORES (leave empty if you don't want vanilla ores)
+    [],                                                     // 6 UNDERGROUND_DECORATION
+    [                                                       // 7 VEGETAL_DECORATION
+      "minecraft:patch_dead_bush_2",
+      "minecraft:patch_cactus_desert"
+    ],
+    [ "minecraft:freeze_top_layer" ]                        // 8 TOP_LAYER_MODIFICATION
+  ]
+}

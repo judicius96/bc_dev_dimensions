@@ -1,0 +1,12 @@
+{
+  "replace": false,
+
+  "_comment": " This biome tag can specify the biome directly. Or specify another biome tag by starting with # ",
+  "values": [
+    "#biomeswevegone:is_bwg_jungle",
+    "#biomeswevegone:is_bwg_forest",
+    "biomeswevegone:enchanted_tangle",
+    "#biomeswevegone:is_bwg_swamp",
+    "#biomeswevegone:is_bwg_frozen"
+      ]
+}
