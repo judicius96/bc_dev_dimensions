@@ -31,6 +31,15 @@ public class BCRegistry {
             () -> new MiningPortalBlock(BlockBehaviour.Properties.of()
                     .noCollission().noOcclusion().strength(-1.0F).lightLevel(s -> 11)));
 
+    public static final RegistryObject<Block> PALETTE_FLOOR = BLOCKS.register("palette_block",
+            () -> new Block(BlockBehaviour.Properties.of()
+                    .strength(-1.0F, 3600000.0F)
+                    .lightLevel(state -> 3)
+                    .noOcclusion()
+                    .requiresCorrectToolForDrops()
+            )
+    );
+
     // Items
     public static final DeferredRegister<Item> ITEMS =
             DeferredRegister.create(ForgeRegistries.ITEMS, BCDimensions.MODID);

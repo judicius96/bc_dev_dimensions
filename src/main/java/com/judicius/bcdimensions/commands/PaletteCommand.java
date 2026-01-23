@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -185,7 +186,7 @@ public class PaletteCommand {
                     return;
                 }
 
-                if (isNonBuildingBlock(path)) {
+                if (isNonBuildingBlock(block, path)) {
                     return;
                 }
 
@@ -434,13 +435,20 @@ public class PaletteCommand {
         return true;
     }
 
-    private static boolean isNonBuildingBlock(String path) {
+    private static boolean isNonBuildingBlock(Block block, String path) {
+        // Check tags
+        if (block.defaultBlockState().is(BlockTags.FLOWERS)) {
+            return true;
+        }
+
+        // Check path strings
         return path.contains("propagule") ||
                 path.contains("potted") ||
                 path.contains("torch") ||
                 path.contains("sapling") ||
                 path.contains("coral") ||
                 path.contains("kelp") ||
-                path.contains("flower_pot");
+                path.contains("flower_pot") ||
+                path.contains("mushroom");
     }
 }

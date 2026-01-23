@@ -6,7 +6,7 @@
       "biome": "minecraft:mushroom_fields",
       "layers": [
         {
-          "block": "minecraft:white_concrete",
+          "block": "bc_dimensions:palette_block",
           "height": 1
         }
       ],
