@@ -1,8 +1,0 @@
-{
-  "type": "forge:add_features",
-  "biomes": "#bc_dimensions:is_bwg",
-  "features": [
-    "irons_spellbooks:ore_arcane_debris"
-  ],
-  "step": "underground_ores"
-}

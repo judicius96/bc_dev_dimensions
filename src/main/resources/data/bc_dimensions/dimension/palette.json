@@ -1,0 +1,16 @@
+{
+  "type": "bc_dimensions:palette",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "minecraft:mushroom_fields",
+      "layers": [
+        {
+          "block": "minecraft:white_concrete",
+          "height": 1
+        }
+      ],
+      "structure_overrides": []
+    }
+  }
+}

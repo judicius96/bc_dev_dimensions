@@ -1,6 +1,6 @@
 package com.judicius.bcdimensions.portals;
 
-import com.judicius.bcdimensions.BCRegistry;
+import com.judicius.bcdimensions.registry.BCRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.resources.ResourceKey;
@@ -30,7 +30,7 @@ public final class PortalTravel {
                 sp,
                 portalPos,
                 axis,
-                DimKeys.SAND,                        // mirror dimension
+                DimKeys.SAND,                        // dimension
                 BCRegistry.SAND_PORTAL.get(),        // portal block in that dim
                 PortalUtils::canUseSandPortal,       // dimension gating
                 PortalUtils::buildSandReturnPortal   // frame + base builder
@@ -38,32 +38,17 @@ public final class PortalTravel {
     }
 
     /**
-     * Overworld <-> RU Mirror Dimension.
+     * Overworld <-> Mining Dimension.
      */
-    public static void travelRu(ServerPlayer sp, BlockPos portalPos, Axis axis) {
+    public static void travelMining(ServerPlayer sp, BlockPos portalPos, Axis axis) {
         travelMirror(
                 sp,
                 portalPos,
                 axis,
-                DimKeys.MIRROR_RU,
+                DimKeys.MINING,
                 BCRegistry.GRANITE_PORTAL.get(),
-                PortalUtils::canUseRuPortal,
-                PortalUtils::buildRuReturnPortal
-        );
-    }
-
-    /**
-     * Overworld <-> BWG Mirror Dimension.
-     */
-    public static void travelBwg(ServerPlayer sp, BlockPos portalPos, Axis axis) {
-        travelMirror(
-                sp,
-                portalPos,
-                axis,
-                DimKeys.MIRROR_BWG,
-                BCRegistry.DIORITE_PORTAL.get(),
-                PortalUtils::canUseBwgPortal,
-                PortalUtils::buildBwgReturnPortal
+                PortalUtils::canUseMiningPortal,
+                PortalUtils::buildMiningReturnPortal
         );
     }
 
@@ -72,8 +57,7 @@ public final class PortalTravel {
     // -------------------------------------------------------------------------
 
     /**
-     * Generic "mirror" travel:
-     *  - Works between Overworld and a single mirror dimension.
+     * Generic dimension travel:
      *  - Uses 1:1 coordinates (same X/Z anchor as current portal).
      *  - Reuses existing portal if found in target dim.
      *  - Otherwise finds a safe pad, builds a return portal, and teleports there.
@@ -126,15 +110,15 @@ public final class PortalTravel {
         );
 
         if (existing != null) {
-            // Teleport into the existing portal we found
-            sp.teleportTo(
-                    target,
-                    existing.getX() + 0.5,
-                    existing.getY() + 0.1,
-                    existing.getZ() + 0.5,
-                    sp.getYRot(),
-                    sp.getXRot()
-            );
+            double x = existing.getX() + 0.5;
+            double y = existing.getY() + 0.1;
+            double z = existing.getZ() + 0.5;
+
+            // push out of the portal so you're not standing in it
+            if (axis == Axis.Z) x += 1.01;   // portal faces +/-X
+            else if (axis == Axis.X) z += 1.01; // portal faces +/-Z
+
+            sp.teleportTo(target, x, y, z, sp.getYRot(), sp.getXRot());
             return;
         }
 

@@ -1,6 +1,6 @@
 package com.judicius.bcdimensions.portals;
 
-import com.judicius.bcdimensions.BCRegistry;
+import com.judicius.bcdimensions.registry.BCRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -46,15 +46,9 @@ final class PortalUtils {
                 || level.dimension() == DimKeys.SAND;
     }
 
-    static boolean canUseRuPortal(Level level) {
+    static boolean canUseMiningPortal(Level level) {
         return level.dimension() == Level.OVERWORLD
-                || level.dimension() == DimKeys.MIRROR_RU;
-    }
-
-    // BWG mirror dimension
-    static boolean canUseBwgPortal(Level level) {
-        return level.dimension() == Level.OVERWORLD
-                || level.dimension() == DimKeys.MIRROR_BWG;
+                || level.dimension() == DimKeys.MINING;
     }
 
     // -------------------------------------------------------------------------
@@ -144,9 +138,9 @@ final class PortalUtils {
     }
 
     // -------------------------------------------------------------------------
-    // RU portal builder (also guarded)
+    // Mining portal builder (also guarded)
     // -------------------------------------------------------------------------
-    static void buildRuReturnPortal(ServerLevel level, BlockPos base) {
+    static void buildMiningReturnPortal(ServerLevel level, BlockPos base) {
         if (level == null || base == null) {
             return;
         }
@@ -178,39 +172,4 @@ final class PortalUtils {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // BWG portal builder (polished diorite)
-    // -------------------------------------------------------------------------
-    static void buildBwgReturnPortal(ServerLevel level, BlockPos base) {
-        if (level == null || base == null) {
-            return;
-        }
-
-        // pad: polished diorite
-        for (int x = -2; x <= 2; x++) {
-            for (int z = 0; z <= 3; z++) {
-                level.setBlock(base.offset(x, -1, z), Blocks.POLISHED_DIORITE.defaultBlockState(), 3);
-            }
-        }
-
-        // frame
-        for (int y = 0; y < 5; y++) {
-            level.setBlock(base.offset(0, y, 0), Blocks.POLISHED_DIORITE.defaultBlockState(), 3);
-            level.setBlock(base.offset(0, y, 3), Blocks.POLISHED_DIORITE.defaultBlockState(), 3);
-        }
-        for (int z = 0; z < 4; z++) {
-            level.setBlock(base.offset(0, 0, z), Blocks.POLISHED_DIORITE.defaultBlockState(), 3);
-            level.setBlock(base.offset(0, 4, z), Blocks.POLISHED_DIORITE.defaultBlockState(), 3);
-        }
-
-        BlockState portal = BCRegistry.DIORITE_PORTAL.get()
-                .defaultBlockState()
-                .setValue(SandPortalBlock.AXIS, Direction.Axis.Z);
-
-        for (int z = 1; z <= 2; z++) {
-            for (int y = 1; y <= 3; y++) {
-                level.setBlock(base.offset(0, y, z), portal, 3);
-            }
-        }
-    }
 }

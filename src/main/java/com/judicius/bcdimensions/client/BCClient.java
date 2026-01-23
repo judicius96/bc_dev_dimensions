@@ -1,7 +1,7 @@
 package com.judicius.bcdimensions.client;
 
 import com.judicius.bcdimensions.BCDimensions;
-import com.judicius.bcdimensions.BCRegistry;
+import com.judicius.bcdimensions.registry.BCRegistry;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraftforge.api.distmarker.Dist;
@@ -23,10 +23,6 @@ public final class BCClient {
             // new granite portal
             if (BCRegistry.GRANITE_PORTAL.get() != null) {
                 ItemBlockRenderTypes.setRenderLayer(BCRegistry.GRANITE_PORTAL.get(), RenderType.translucent());
-            }
-            // new diorite portal
-            if (BCRegistry.DIORITE_PORTAL.get() != null) {
-                ItemBlockRenderTypes.setRenderLayer(BCRegistry.DIORITE_PORTAL.get(), RenderType.translucent());
             }
         });
     }

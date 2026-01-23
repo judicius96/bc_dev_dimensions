@@ -12,16 +12,12 @@ public final class DimKeys {
     public static final ResourceKey<Level> SAND =
             ResourceKey.create(Registries.DIMENSION,
                     new ResourceLocation(BCDimensions.MODID, "sand_dimension"));
-/*
+
     public static final ResourceKey<Level> MINING =
             ResourceKey.create(Registries.DIMENSION,
                     new ResourceLocation(BCDimensions.MODID, "mining_dimension"));
-*/
-    public static final ResourceKey<Level> MIRROR_RU =
-            ResourceKey.create(Registries.DIMENSION,
-                    new ResourceLocation(BCDimensions.MODID, "ru_mirror_dimension"));
 
-    public static final ResourceKey<Level> MIRROR_BWG =
+    public static final ResourceKey<Level> SPECTER =
             ResourceKey.create(Registries.DIMENSION,
-                    new ResourceLocation(BCDimensions.MODID, "bwg_mirror_dimension"));
+                    new ResourceLocation(BCDimensions.MODID, "specter_dimension"));
 }

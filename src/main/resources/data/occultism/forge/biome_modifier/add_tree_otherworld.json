@@ -1,6 +1,0 @@
-{
-  "type": "forge:add_features",
-  "biomes": "#bc_dimensions:is_bwg",
-  "features": "occultism:tree_otherworld",
-  "step": "vegetal_decoration"
-}

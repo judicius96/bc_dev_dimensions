@@ -1,6 +1,7 @@
 package com.judicius.bcdimensions;
 
 import com.judicius.bcdimensions.portals.SandPortalBlock;
+import com.judicius.bcdimensions.registry.BCRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;

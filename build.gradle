@@ -54,18 +54,6 @@ minecraft {
         }
     }
 }
-mixin {
-    // generate this refmap for main
-    add sourceSets.main, "bc_dimensions.refmap.json"
-    // name of your mixin config file in the jar root
-    config "mixins.bc_dimensions.json"
-
-    // optional but handy while debugging:
-    debug.verbose = true
-    debug.export  = true
-    dumpTargetOnFailure = true
-}
-
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
@@ -81,17 +69,6 @@ dependencies {
     // Forge itself
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
 
-    // TerraBlender (Forge 1.20.1-3.0.1.10) from CurseMaven
-    // source: https://www.curseforge.com/minecraft/mc-mods/terrablender/files/5068218 :contentReference[oaicite:0]{index=0}
-    implementation fg.deobf("curse.maven:terrablender-563928:6290448")
-
-    // Regions Unexplored (Forge 1.20.1 v0.5.3.1) from CurseMaven
-    // source: https://www.curseforge.com/minecraft/mc-mods/regions-unexplored/files/5012047 :contentReference[oaicite:1]{index=1}
-    implementation fg.deobf("curse.maven:regions-unexplored-659110:5558225")
-    //Biomes We've Gone (Also contains Trees)
-    implementation fg.deobf("curse.maven:oh-the-biomes-weve-gone-1070751:7170427")
-    //CorgiLib
-    implementation fg.deobf("curse.maven:corgilib-693313:6616784")
     // Annotation Processor so IntelliJ stops saying “cannot resolve mixin”
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 

@@ -1,7 +1,7 @@
 package com.judicius.bcdimensions.portals;
 
 import com.judicius.bcdimensions.BCDimensions;
-import com.judicius.bcdimensions.BCRegistry;
+import com.judicius.bcdimensions.registry.BCRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
 import net.minecraft.server.level.ServerLevel;
@@ -87,18 +87,6 @@ public final class PortalIgnitionEvents {
                         fillGranitePortalZ(level, p);
                         return true;
                     }
-
-                    // NEW: polished diorite → BWG portal
-                    if (validDioriteFrameX(level, p)) {
-                        LOGGER.info("[PortalIgnite] Found DIORITE frame (X) at {}", p);
-                        fillDioritePortalX(level, p);
-                        return true;
-                    }
-                    if (validDioriteFrameZ(level, p)) {
-                        LOGGER.info("[PortalIgnite] Found DIORITE frame (Z) at {}", p);
-                        fillDioritePortalZ(level, p);
-                        return true;
-                    }
                 }
             }
         }
@@ -159,7 +147,7 @@ public final class PortalIgnitionEvents {
     }
     // ============================================================
 
-    // ========== NEW GRANITE / RU PORTAL ADDITIONS ==========
+    // ========== NEW GRANITE / MINING PORTAL ADDITIONS ==========
 
     private static boolean isPolishedGranite(BlockState s) {
         return s.is(Blocks.POLISHED_GRANITE);
@@ -213,57 +201,4 @@ public final class PortalIgnitionEvents {
             level.setBlock(inner.offset(0, y, z), state, 3);
     }
 
-    // ========== NEW DIORITE / BWG PORTAL ADDITIONS ==========
-
-    private static boolean isPolishedDiorite(BlockState s) {
-        return s.is(Blocks.POLISHED_DIORITE);
-    }
-
-    private static boolean validDioriteFrameX(ServerLevel level, BlockPos bl) {
-        for (int x=0;x<4;x++) {
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(x, 0, 0)))) return false;
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(x, 4, 0)))) return false;
-        }
-        for (int y=0;y<5;y++) {
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(0, y, 0)))) return false;
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(3, y, 0)))) return false;
-        }
-        for (int x=1;x<=2;x++) for (int y=1;y<=3;y++) {
-            BlockState s = level.getBlockState(bl.offset(x, y, 0));
-            if (!s.isAir() && !s.is(BCRegistry.DIORITE_PORTAL.get())) return false;
-        }
-        return true;
-    }
-
-    private static boolean validDioriteFrameZ(ServerLevel level, BlockPos bl) {
-        for (int z=0;z<4;z++) {
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(0, 0, z)))) return false;
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(0, 4, z)))) return false;
-        }
-        for (int y=0;y<5;y++) {
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(0, y, 0)))) return false;
-            if (!isPolishedDiorite(level.getBlockState(bl.offset(0, y, 3)))) return false;
-        }
-        for (int z=1;z<=2;z++) for (int y=1;y<=3;y++) {
-            BlockState s = level.getBlockState(bl.offset(0, y, z));
-            if (!s.isAir() && !s.is(BCRegistry.DIORITE_PORTAL.get())) return false;
-        }
-        return true;
-    }
-
-    private static void fillDioritePortalX(ServerLevel level, BlockPos bl) {
-        var state = BCRegistry.DIORITE_PORTAL.get().defaultBlockState()
-                .setValue(SandPortalBlock.AXIS, Axis.X);
-        BlockPos inner = bl.offset(1, 1, 0);
-        for (int x=0;x<2;x++) for (int y=0;y<3;y++)
-            level.setBlock(inner.offset(x, y, 0), state, 3);
-    }
-
-    private static void fillDioritePortalZ(ServerLevel level, BlockPos bl) {
-        var state = BCRegistry.DIORITE_PORTAL.get().defaultBlockState()
-                .setValue(SandPortalBlock.AXIS, Axis.Z);
-        BlockPos inner = bl.offset(0, 1, 1);
-        for (int z=0;z<2;z++) for (int y=0;y<3;y++)
-            level.setBlock(inner.offset(0, y, z), state, 3);
-    }
 }

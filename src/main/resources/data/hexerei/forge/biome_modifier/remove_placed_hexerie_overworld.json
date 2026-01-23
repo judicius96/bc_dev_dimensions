@@ -1,7 +1,0 @@
-{
-  "type": "forge:remove_features",
-  "biomes": "#forge:is_swamp",
-  "features": [
-    "hexerei:selenite_geode_placed"
-    ]
-}
