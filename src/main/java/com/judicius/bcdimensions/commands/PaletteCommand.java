@@ -7,7 +7,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -28,22 +27,6 @@ import java.util.*;
 
 public class PaletteCommand {
 
-    private static final Map<UUID, ReturnLocation> returnLocations = new HashMap<>();
-
-    private static class ReturnLocation {
-        ResourceKey<Level> dimension;
-        BlockPos pos;
-        float yaw;
-        float pitch;
-
-        ReturnLocation(ResourceKey<Level> dimension, BlockPos pos, float yaw, float pitch) {
-            this.dimension = dimension;
-            this.pos = pos;
-            this.yaw = yaw;
-            this.pitch = pitch;
-        }
-    }
-
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("palette")
                 .then(Commands.literal("enter")
@@ -61,28 +44,19 @@ public class PaletteCommand {
                                 player.sendSystemMessage(Component.literal("§eYou're already in a Palette session. Use /palette exit to return."));
                                 // Just teleport them back to Palette, don't create new snapshot
                             } else {
-                                // Clean entry - save snapshot
+                                // Clean entry - save snapshot AND return location
                                 state.saveSnapshot(player);
+                                state.saveReturnLocation(
+                                        player.level().dimension().location().toString(),
+                                        player.blockPosition().getX(),
+                                        player.blockPosition().getY(),
+                                        player.blockPosition().getZ(),
+                                        player.getYRot(),
+                                        player.getXRot()
+                                );
                                 state.isInside = true;
                                 paletteData.markDirty();
                             }
-
-                            // Save return location to memory (backup)
-                            returnLocations.put(player.getUUID(), new ReturnLocation(
-                                    player.level().dimension(),
-                                    player.blockPosition(),
-                                    player.getYRot(),
-                                    player.getXRot()
-                            ));
-
-                            // Save to persistent NBT data (backup)
-                            CompoundTag playerData = player.getPersistentData();
-                            playerData.putString("palette_return_dim", player.level().dimension().location().toString());
-                            playerData.putInt("palette_return_x", player.blockPosition().getX());
-                            playerData.putInt("palette_return_y", player.blockPosition().getY());
-                            playerData.putInt("palette_return_z", player.blockPosition().getZ());
-                            playerData.putFloat("palette_return_yaw", player.getYRot());
-                            playerData.putFloat("palette_return_pitch", player.getXRot());
 
                             // Teleport to palette dimension
                             ServerLevel paletteLevel = player.getServer().getLevel(
@@ -114,54 +88,45 @@ public class PaletteCommand {
                                 state.restoreSnapshot(player);
                             }
 
-                            // Get return location
-                            ReturnLocation returnLoc = returnLocations.get(player.getUUID());
+                            // Get return location from persistent storage
+                            if (!state.hasReturnLocation()) {
+                                // EMERGENCY FALLBACK: No return location, send to world spawn
+                                ServerLevel overworld = player.getServer().overworld();
+                                BlockPos spawn = overworld.getSharedSpawnPos();
 
-                            // If not in memory, try loading from persistent data
-                            if (returnLoc == null) {
-                                CompoundTag playerData = player.getPersistentData();
-                                if (playerData.contains("palette_return_dim")) {
-                                    ResourceKey<Level> dim = ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
-                                            new ResourceLocation(playerData.getString("palette_return_dim")));
-                                    BlockPos pos = new BlockPos(
-                                            playerData.getInt("palette_return_x"),
-                                            playerData.getInt("palette_return_y"),
-                                            playerData.getInt("palette_return_z")
-                                    );
-                                    returnLoc = new ReturnLocation(dim, pos,
-                                            playerData.getFloat("palette_return_yaw"),
-                                            playerData.getFloat("palette_return_pitch"));
-                                }
-                            }
-
-                            if (returnLoc == null) {
-                                source.sendFailure(Component.literal("No return location found!"));
-                                return 0;
-                            }
-
-                            ServerLevel returnLevel = player.getServer().getLevel(returnLoc.dimension);
-
-                            if (returnLevel != null) {
-                                player.teleportTo(returnLevel,
-                                        returnLoc.pos.getX() + 0.5,
-                                        returnLoc.pos.getY(),
-                                        returnLoc.pos.getZ() + 0.5,
-                                        returnLoc.yaw,
-                                        returnLoc.pitch);
+                                player.teleportTo(overworld,
+                                        spawn.getX() + 0.5,
+                                        spawn.getY(),
+                                        spawn.getZ() + 0.5,
+                                        0, 0);
 
                                 // Clear palette state
                                 state.clear();
                                 paletteData.markDirty();
 
-                                // Clear saved location
-                                returnLocations.remove(player.getUUID());
-                                CompoundTag playerData = player.getPersistentData();
-                                playerData.remove("palette_return_dim");
-                                playerData.remove("palette_return_x");
-                                playerData.remove("palette_return_y");
-                                playerData.remove("palette_return_z");
-                                playerData.remove("palette_return_yaw");
-                                playerData.remove("palette_return_pitch");
+                                player.sendSystemMessage(Component.literal("§eReturned to world spawn (return location was lost)."));
+                                return 1;
+                            }
+
+                            // Normal return using saved location
+                            ResourceKey<Level> returnDim = ResourceKey.create(
+                                    net.minecraft.core.registries.Registries.DIMENSION,
+                                    new ResourceLocation(state.returnDimension)
+                            );
+
+                            ServerLevel returnLevel = player.getServer().getLevel(returnDim);
+
+                            if (returnLevel != null) {
+                                player.teleportTo(returnLevel,
+                                        state.returnX + 0.5,
+                                        state.returnY,
+                                        state.returnZ + 0.5,
+                                        state.returnYaw,
+                                        state.returnPitch);
+
+                                // Clear palette state
+                                state.clear();
+                                paletteData.markDirty();
 
                                 player.sendSystemMessage(Component.literal("Returned to previous location!"));
                                 return 1;

@@ -23,10 +23,24 @@ public class PaletteStateData extends SavedData {
         public boolean hasSnapshot;
         public CompoundTag snapshot; // Saved player inventory/data
 
+        // PERSISTENT return location (NOT in HashMap anymore)
+        public String returnDimension;
+        public int returnX;
+        public int returnY;
+        public int returnZ;
+        public float returnYaw;
+        public float returnPitch;
+
         public PlayerPaletteState() {
             this.isInside = false;
             this.hasSnapshot = false;
             this.snapshot = new CompoundTag();
+            this.returnDimension = "";
+            this.returnX = 0;
+            this.returnY = 0;
+            this.returnZ = 0;
+            this.returnYaw = 0;
+            this.returnPitch = 0;
         }
 
         public void saveSnapshot(Player player) {
@@ -41,10 +55,29 @@ public class PaletteStateData extends SavedData {
             }
         }
 
+        public void saveReturnLocation(String dimension, int x, int y, int z, float yaw, float pitch) {
+            this.returnDimension = dimension;
+            this.returnX = x;
+            this.returnY = y;
+            this.returnZ = z;
+            this.returnYaw = yaw;
+            this.returnPitch = pitch;
+        }
+
+        public boolean hasReturnLocation() {
+            return !this.returnDimension.isEmpty();
+        }
+
         public void clear() {
             this.isInside = false;
             this.hasSnapshot = false;
             this.snapshot = new CompoundTag();
+            this.returnDimension = "";
+            this.returnX = 0;
+            this.returnY = 0;
+            this.returnZ = 0;
+            this.returnYaw = 0;
+            this.returnPitch = 0;
         }
     }
 
@@ -75,6 +108,15 @@ public class PaletteStateData extends SavedData {
             playerTag.putBoolean("isInside", entry.getValue().isInside);
             playerTag.putBoolean("hasSnapshot", entry.getValue().hasSnapshot);
             playerTag.put("snapshot", entry.getValue().snapshot);
+
+            // Save return location
+            playerTag.putString("returnDimension", entry.getValue().returnDimension);
+            playerTag.putInt("returnX", entry.getValue().returnX);
+            playerTag.putInt("returnY", entry.getValue().returnY);
+            playerTag.putInt("returnZ", entry.getValue().returnZ);
+            playerTag.putFloat("returnYaw", entry.getValue().returnYaw);
+            playerTag.putFloat("returnPitch", entry.getValue().returnPitch);
+
             playerList.add(playerTag);
         }
 
@@ -95,6 +137,14 @@ public class PaletteStateData extends SavedData {
             state.isInside = playerTag.getBoolean("isInside");
             state.hasSnapshot = playerTag.getBoolean("hasSnapshot");
             state.snapshot = playerTag.getCompound("snapshot");
+
+            // Load return location
+            state.returnDimension = playerTag.getString("returnDimension");
+            state.returnX = playerTag.getInt("returnX");
+            state.returnY = playerTag.getInt("returnY");
+            state.returnZ = playerTag.getInt("returnZ");
+            state.returnYaw = playerTag.getFloat("returnYaw");
+            state.returnPitch = playerTag.getFloat("returnPitch");
 
             data.playerStates.put(uuid, state);
         }
