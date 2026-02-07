@@ -4,7 +4,7 @@ license="All Rights Reserved"
 
 [[mods]]
 modId="bc_dimensions"
-version="1.0.0"
+version="1.1.0"
 displayName="Builders Companion Dimensions"
 authors="Judicius"
 description='''Dimension Companion mod designed for Builders Delight 4.'''
@@ -23,3 +23,9 @@ versionRange="[1.20.1,1.21)"
 ordering="NONE"
 side="BOTH"
 
+[[dependencies.bc_dimensions]]
+modId="bc_additions"
+mandatory=false
+versionRange="[1.20.1-1.0.0,)"
+ordering="AFTER"
+side="BOTH"

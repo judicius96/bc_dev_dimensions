@@ -8,12 +8,15 @@ import com.judicius.bcdimensions.worldgen.MushroomCavernsChunkGenerator;
 import com.judicius.bcdimensions.worldgen.SpecterChunkGenerator;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
 import net.minecraftforge.registries.RegistryObject;
@@ -67,5 +70,12 @@ public class BCRegistry {
     // Biome Source Codecs
     public static final DeferredRegister<Codec<? extends BiomeSource>> BIOME_SOURCES =
             DeferredRegister.create(Registries.BIOME_SOURCE, BCDimensions.MODID);
+
+    @SubscribeEvent
+    public static void addCreative(BuildCreativeModeTabContentsEvent event) {
+        if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
+            event.accept(BCRegistry.SPECTER_KEY);
+        }
+    }
 
 }

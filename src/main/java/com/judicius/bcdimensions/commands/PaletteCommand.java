@@ -1,5 +1,6 @@
 package com.judicius.bcdimensions.command;
 
+import com.judicius.bcdimensions.palette.PaletteStateData;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.CommandSourceStack;
@@ -49,8 +50,24 @@ public class PaletteCommand {
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
                             ServerPlayer player = source.getPlayerOrException();
+                            ServerLevel currentLevel = (ServerLevel) player.level();
 
-                            // Save current location to memory
+                            // Get palette state data
+                            PaletteStateData paletteData = PaletteStateData.get(currentLevel);
+                            PaletteStateData.PlayerPaletteState state = paletteData.getState(player.getUUID());
+
+                            // Check if player is already in Palette or has unfinished session
+                            if (state.isInside) {
+                                player.sendSystemMessage(Component.literal("§eYou're already in a Palette session. Use /palette exit to return."));
+                                // Just teleport them back to Palette, don't create new snapshot
+                            } else {
+                                // Clean entry - save snapshot
+                                state.saveSnapshot(player);
+                                state.isInside = true;
+                                paletteData.markDirty();
+                            }
+
+                            // Save return location to memory (backup)
                             returnLocations.put(player.getUUID(), new ReturnLocation(
                                     player.level().dimension(),
                                     player.blockPosition(),
@@ -58,7 +75,7 @@ public class PaletteCommand {
                                     player.getXRot()
                             ));
 
-                            // Save to persistent NBT data
+                            // Save to persistent NBT data (backup)
                             CompoundTag playerData = player.getPersistentData();
                             playerData.putString("palette_return_dim", player.level().dimension().location().toString());
                             playerData.putInt("palette_return_x", player.blockPosition().getX());
@@ -86,7 +103,18 @@ public class PaletteCommand {
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
                             ServerPlayer player = source.getPlayerOrException();
+                            ServerLevel currentLevel = (ServerLevel) player.level();
 
+                            // Get palette state data
+                            PaletteStateData paletteData = PaletteStateData.get(currentLevel);
+                            PaletteStateData.PlayerPaletteState state = paletteData.getState(player.getUUID());
+
+                            // Restore snapshot if it exists
+                            if (state.hasSnapshot) {
+                                state.restoreSnapshot(player);
+                            }
+
+                            // Get return location
                             ReturnLocation returnLoc = returnLocations.get(player.getUUID());
 
                             // If not in memory, try loading from persistent data
@@ -120,6 +148,10 @@ public class PaletteCommand {
                                         returnLoc.pos.getZ() + 0.5,
                                         returnLoc.yaw,
                                         returnLoc.pitch);
+
+                                // Clear palette state
+                                state.clear();
+                                paletteData.markDirty();
 
                                 // Clear saved location
                                 returnLocations.remove(player.getUUID());
@@ -429,6 +461,11 @@ public class PaletteCommand {
 
         // When searching for "oak", exclude dark_oak
         if (word.equals("oak") && text.contains("dark")) {
+            return false;
+        }
+
+        // When searching for "oak", exclude pale_oak
+        if (word.equals("oak") && text.contains("pale")) {
             return false;
         }
 
