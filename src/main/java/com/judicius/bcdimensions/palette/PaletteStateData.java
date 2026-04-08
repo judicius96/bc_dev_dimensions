@@ -15,18 +15,29 @@ public class PaletteStateData extends SavedData {
 
     private static final String DATA_NAME = "bc_additions_palette_state";
 
-    // Map of player UUID -> their palette state
     private final Map<UUID, PlayerPaletteState> playerStates = new HashMap<>();
 
     public static class PlayerPaletteState {
         public boolean isInside;
         public boolean hasSnapshot;
-        public CompoundTag snapshot; // Saved player inventory/data
+        public CompoundTag snapshot;
+        public String returnDim;
+        public int returnX;
+        public int returnY;
+        public int returnZ;
+        public float returnYaw;
+        public float returnPitch;
 
         public PlayerPaletteState() {
             this.isInside = false;
             this.hasSnapshot = false;
             this.snapshot = new CompoundTag();
+            this.returnDim = "";
+            this.returnX = 0;
+            this.returnY = 64;
+            this.returnZ = 0;
+            this.returnYaw = 0;
+            this.returnPitch = 0;
         }
 
         public void saveSnapshot(Player player) {
@@ -45,26 +56,28 @@ public class PaletteStateData extends SavedData {
             this.isInside = false;
             this.hasSnapshot = false;
             this.snapshot = new CompoundTag();
+            this.returnDim = "";
+            this.returnX = 0;
+            this.returnY = 64;
+            this.returnZ = 0;
+            this.returnYaw = 0;
+            this.returnPitch = 0;
         }
     }
 
-    // Get or create the saved data for a server level
     public static PaletteStateData get(ServerLevel level) {
         return level.getServer().overworld().getDataStorage()
                 .computeIfAbsent(PaletteStateData::load, PaletteStateData::new, DATA_NAME);
     }
 
-    // Get state for a player (creates if doesn't exist)
     public PlayerPaletteState getState(UUID playerId) {
         return playerStates.computeIfAbsent(playerId, k -> new PlayerPaletteState());
     }
 
-    // Mark data as dirty when modified
     public void markDirty() {
         this.setDirty();
     }
 
-    // Save to NBT
     @Override
     public CompoundTag save(CompoundTag tag) {
         ListTag playerList = new ListTag();
@@ -75,6 +88,12 @@ public class PaletteStateData extends SavedData {
             playerTag.putBoolean("isInside", entry.getValue().isInside);
             playerTag.putBoolean("hasSnapshot", entry.getValue().hasSnapshot);
             playerTag.put("snapshot", entry.getValue().snapshot);
+            playerTag.putString("returnDim", entry.getValue().returnDim);
+            playerTag.putInt("returnX", entry.getValue().returnX);
+            playerTag.putInt("returnY", entry.getValue().returnY);
+            playerTag.putInt("returnZ", entry.getValue().returnZ);
+            playerTag.putFloat("returnYaw", entry.getValue().returnYaw);
+            playerTag.putFloat("returnPitch", entry.getValue().returnPitch);
             playerList.add(playerTag);
         }
 
@@ -82,7 +101,6 @@ public class PaletteStateData extends SavedData {
         return tag;
     }
 
-    // Load from NBT
     public static PaletteStateData load(CompoundTag tag) {
         PaletteStateData data = new PaletteStateData();
 
@@ -95,6 +113,12 @@ public class PaletteStateData extends SavedData {
             state.isInside = playerTag.getBoolean("isInside");
             state.hasSnapshot = playerTag.getBoolean("hasSnapshot");
             state.snapshot = playerTag.getCompound("snapshot");
+            state.returnDim = playerTag.getString("returnDim");
+            state.returnX = playerTag.getInt("returnX");
+            state.returnY = playerTag.getInt("returnY");
+            state.returnZ = playerTag.getInt("returnZ");
+            state.returnYaw = playerTag.getFloat("returnYaw");
+            state.returnPitch = playerTag.getFloat("returnPitch");
 
             data.playerStates.put(uuid, state);
         }

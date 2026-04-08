@@ -14,18 +14,18 @@ import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
 import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.levelgen.RandomState;
 
-public class SpecterChunkGenerator extends NoiseBasedChunkGenerator {
+public class SpectralChunkGenerator extends NoiseBasedChunkGenerator {
 
-    public static final Codec<SpecterChunkGenerator> CODEC = RecordCodecBuilder.create(instance ->
+    public static final Codec<SpectralChunkGenerator> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
                     BiomeSource.CODEC.fieldOf("biome_source").forGetter(ChunkGenerator::getBiomeSource),
                     NoiseGeneratorSettings.CODEC.fieldOf("settings").forGetter(gen -> gen.generatorSettings)
-            ).apply(instance, SpecterChunkGenerator::new)
+            ).apply(instance, SpectralChunkGenerator::new)
     );
 
     private final Holder<NoiseGeneratorSettings> generatorSettings;
 
-    public SpecterChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings) {
+    public SpectralChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings) {
         super(biomeSource, settings);
         this.generatorSettings = settings;
     }

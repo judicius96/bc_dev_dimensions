@@ -1,7 +1,7 @@
 package com.judicius.bcdimensions.item;
 
 import com.judicius.bcdimensions.portals.DimKeys;
-import com.judicius.bcdimensions.specter.SpecterHandler;
+import com.judicius.bcdimensions.spectral.SpectralHandler;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -11,9 +11,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
-public class SpecterKeyItem extends Item {
+public class SpectralKeyItem extends Item {
 
-    public SpecterKeyItem(Properties properties) {
+    public SpectralKeyItem(Properties properties) {
         super(properties);
     }
 
@@ -23,16 +23,16 @@ public class SpecterKeyItem extends Item {
             return InteractionResultHolder.pass(player.getItemInHand(hand));
         }
 
-        if (serverPlayer.level().dimension() == DimKeys.SPECTER) {
-            // Exit specter dimension
-            ServerLevel specterWorld = (ServerLevel) serverPlayer.level();
-            SpecterHandler handler = SpecterHandler.get(specterWorld);
+        if (serverPlayer.level().dimension() == DimKeys.SPECTRAL) {
+            // Exit spectral dimension
+            ServerLevel spectralWorld = (ServerLevel) serverPlayer.level();
+            SpectralHandler handler = SpectralHandler.get(spectralWorld);
             handler.teleportPlayerBack(serverPlayer);
         } else {
-            // Enter specter dimension
-            ServerLevel specterWorld = serverPlayer.server.getLevel(DimKeys.SPECTER);
-            if (specterWorld != null) {
-                SpecterHandler handler = SpecterHandler.get(specterWorld);
+            // Enter spectral dimension
+            ServerLevel spectralWorld = serverPlayer.server.getLevel(DimKeys.SPECTRAL);
+            if (spectralWorld != null) {
+                SpectralHandler handler = SpectralHandler.get(spectralWorld);
                 handler.teleportPlayerToCube(serverPlayer);
             }
         }

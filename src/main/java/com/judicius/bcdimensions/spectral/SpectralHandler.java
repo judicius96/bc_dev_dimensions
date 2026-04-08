@@ -1,4 +1,4 @@
-package com.judicius.bcdimensions.specter;
+package com.judicius.bcdimensions.spectral;
 
 import com.judicius.bcdimensions.portals.DimKeys;
 import net.minecraft.core.BlockPos;
@@ -10,7 +10,6 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.minecraft.world.level.storage.DimensionDataStorage;
@@ -19,34 +18,34 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class SpecterHandler extends SavedData {
-    private static final String DATA_NAME = "bc_specter_handler";
+public class SpectralHandler extends SavedData {
+    private static final String DATA_NAME = "bc_spectral_handler";
 
-    private final Map<UUID, SpecterCube> cubes = new HashMap<>();
+    private final Map<UUID, com.judicius.bcdimensions.spectral.SpectralCube> cubes = new HashMap<>();
     private int positionCounter = 0;
     private final ServerLevel world;
 
-    public SpecterHandler(ServerLevel world) {
+    public SpectralHandler(ServerLevel world) {
         this.world = world;
     }
 
-    public static SpecterHandler get(ServerLevel world) {
+    public static SpectralHandler get(ServerLevel world) {
         DimensionDataStorage storage = world.getDataStorage();
         return storage.computeIfAbsent(
                 tag -> load(world, tag),
-                () -> new SpecterHandler(world),
+                () -> new SpectralHandler(world),
                 DATA_NAME
         );
     }
 
-    public static SpecterHandler load(ServerLevel world, CompoundTag tag) {
-        SpecterHandler handler = new SpecterHandler(world);
+    public static SpectralHandler load(ServerLevel world, CompoundTag tag) {
+        SpectralHandler handler = new SpectralHandler(world);
         handler.positionCounter = tag.getInt("positionCounter");
 
         ListTag cubeList = tag.getList("cubes", Tag.TAG_COMPOUND);
         for (int i = 0; i < cubeList.size(); i++) {
             CompoundTag cubeTag = cubeList.getCompound(i);
-            SpecterCube cube = SpecterCube.readFromNBT(handler, cubeTag);
+            com.judicius.bcdimensions.spectral.SpectralCube cube = com.judicius.bcdimensions.spectral.SpectralCube.readFromNBT(handler, cubeTag);
             handler.cubes.put(cube.getOwner(), cube);
         }
 
@@ -58,7 +57,7 @@ public class SpecterHandler extends SavedData {
         tag.putInt("positionCounter", positionCounter);
 
         ListTag cubeList = new ListTag();
-        for (SpecterCube cube : cubes.values()) {
+        for (com.judicius.bcdimensions.spectral.SpectralCube cube : cubes.values()) {
             CompoundTag cubeTag = new CompoundTag();
             cube.writeToNBT(cubeTag);
             cubeList.add(cubeTag);
@@ -68,9 +67,9 @@ public class SpecterHandler extends SavedData {
         return tag;
     }
 
-    public SpecterCube getOrCreateCube(UUID playerUUID) {
+    public com.judicius.bcdimensions.spectral.SpectralCube getOrCreateCube(UUID playerUUID) {
         return cubes.computeIfAbsent(playerUUID, uuid -> {
-            SpecterCube cube = new SpecterCube(this, uuid, positionCounter);
+            com.judicius.bcdimensions.spectral.SpectralCube cube = new com.judicius.bcdimensions.spectral.SpectralCube(this, uuid, positionCounter);
             positionCounter += 16;
             cube.generate(world);
             setDirty();
@@ -78,11 +77,11 @@ public class SpecterHandler extends SavedData {
         });
     }
 
-    public SpecterCube getCube(UUID playerUUID) {
+    public com.judicius.bcdimensions.spectral.SpectralCube getCube(UUID playerUUID) {
         return cubes.get(playerUUID);
     }
 
-    public SpecterCube getCubeAtPosition(BlockPos pos) {
+    public com.judicius.bcdimensions.spectral.SpectralCube getCubeAtPosition(BlockPos pos) {
         if (pos.getZ() < 0 || pos.getZ() > 15) {
             return null;
         }
@@ -90,7 +89,7 @@ public class SpecterHandler extends SavedData {
         int chunkX = pos.getX() >> 4;
         int cubePosition = chunkX * 16;
 
-        for (SpecterCube cube : cubes.values()) {
+        for (com.judicius.bcdimensions.spectral.SpectralCube cube : cubes.values()) {
             if (cube.getPosition() == cubePosition) {
                 int minX = cubePosition;
                 int maxX = cubePosition + 15;
@@ -110,20 +109,20 @@ public class SpecterHandler extends SavedData {
     public void teleportPlayerToCube(ServerPlayer player) {
         // Save return position
         CompoundTag playerData = player.getPersistentData();
-        playerData.putDouble("specterReturnX", player.getX());
-        playerData.putDouble("specterReturnY", player.getY());
-        playerData.putDouble("specterReturnZ", player.getZ());
-        playerData.putString("specterReturnDim", player.level().dimension().location().toString());
+        playerData.putDouble("spectralReturnX", player.getX());
+        playerData.putDouble("spectralReturnY", player.getY());
+        playerData.putDouble("spectralReturnZ", player.getZ());
+        playerData.putString("spectralReturnDim", player.level().dimension().location().toString());
 
         UUID playerUUID = player.getUUID();
-        SpecterCube cube = getOrCreateCube(playerUUID);
+        com.judicius.bcdimensions.spectral.SpectralCube cube = getOrCreateCube(playerUUID);
 
-        if (player.level().dimension() != DimKeys.SPECTER) {
-            ServerLevel specterWorld = player.server.getLevel(DimKeys.SPECTER);
-            if (specterWorld != null) {
-                player.changeDimension(specterWorld);
+        if (player.level().dimension() != DimKeys.SPECTRAL) {
+            ServerLevel spectralWorld = player.server.getLevel(DimKeys.SPECTRAL);
+            if (spectralWorld != null) {
+                player.changeDimension(spectralWorld);
                 BlockPos spawn = cube.getSpawnBlock();
-                player.teleportTo(specterWorld, spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.getYRot(), player.getXRot());
+                player.teleportTo(spectralWorld, spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5, player.getYRot(), player.getXRot());
                 return;
             }
         }
@@ -135,11 +134,11 @@ public class SpecterHandler extends SavedData {
     public void teleportPlayerBack(ServerPlayer player) {
         CompoundTag playerData = player.getPersistentData();
 
-        if (playerData.contains("specterReturnX")) {
-            double x = playerData.getDouble("specterReturnX");
-            double y = playerData.getDouble("specterReturnY");
-            double z = playerData.getDouble("specterReturnZ");
-            String dimString = playerData.getString("specterReturnDim");
+        if (playerData.contains("spectralReturnX")) {
+            double x = playerData.getDouble("spectralReturnX");
+            double y = playerData.getDouble("spectralReturnY");
+            double z = playerData.getDouble("spectralReturnZ");
+            String dimString = playerData.getString("spectralReturnDim");
 
             ResourceLocation dimLocation = new ResourceLocation(dimString);
             ResourceKey<Level> dimKey = ResourceKey.create(Registries.DIMENSION, dimLocation);
@@ -159,11 +158,11 @@ public class SpecterHandler extends SavedData {
             return;
         }
 
-        SpecterCube cubeAtPos = getCubeAtPosition(player.blockPosition());
+        com.judicius.bcdimensions.spectral.SpectralCube cubeAtPos = getCubeAtPosition(player.blockPosition());
         UUID playerUUID = player.getUUID();
 
         if (cubeAtPos == null || !cubeAtPos.isPlayerAllowed(playerUUID)) {
-            SpecterCube playerCube = getCube(playerUUID);
+            com.judicius.bcdimensions.spectral.SpectralCube playerCube = getCube(playerUUID);
             if (playerCube != null) {
                 BlockPos spawn = playerCube.getSpawnBlock();
                 player.teleportTo(spawn.getX() + 0.5, spawn.getY() + 1, spawn.getZ() + 0.5);
@@ -174,7 +173,7 @@ public class SpecterHandler extends SavedData {
     }
 
     public void unloadPlayerCube(UUID playerUUID) {
-        SpecterCube cube = getCube(playerUUID);
+        com.judicius.bcdimensions.spectral.SpectralCube cube = getCube(playerUUID);
         if (cube != null) {
             int chunkX = cube.getPosition() / 16;
             world.setChunkForced(chunkX, 0, false);

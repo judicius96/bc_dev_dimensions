@@ -1,25 +1,25 @@
-package com.judicius.bcdimensions.specter;
+package com.judicius.bcdimensions.spectral;
 
 import com.judicius.bcdimensions.registry.BCRegistry;
+import com.judicius.bcdimensions.spectral.SpectralHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class SpecterCube {
+public class SpectralCube {
     private final UUID owner;
     private final int position;
     private int height;
     private BlockPos spawnBlock;
     private final List<UUID> guests;
-    private final SpecterHandler handler;
+    private final SpectralHandler handler;
 
-    public SpecterCube(SpecterHandler handler, UUID owner, int position) {
+    public SpectralCube(SpectralHandler handler, UUID owner, int position) {
         this.handler = handler;
         this.owner = owner;
         this.position = position;
@@ -50,14 +50,14 @@ public class SpecterCube {
     }
 
     public void generate(ServerLevel world) {
-        System.out.println("[SpecterCube] Generating cube for position: " + position);
+        System.out.println("[SpectralCube] Generating cube for position: " + position);
         BlockPos corner = new BlockPos(position * 16, 0, 0);
         BlockPos opposite = corner.offset(15, height + 1, 15);
-        System.out.println("[SpecterCube] Corner: " + corner + " Opposite: " + opposite);
+        System.out.println("[SpectralCube] Corner: " + corner + " Opposite: " + opposite);
 
         // Generate hollow barrier cube
-        generateHollowCube(world, corner, opposite, BCRegistry.SPECTER_BLOCK.get().defaultBlockState());
-        System.out.println("[SpecterCube] Cube generation complete");
+        generateHollowCube(world, corner, opposite, BCRegistry.SPECTRAL_BLOCK.get().defaultBlockState());
+        System.out.println("[SpectralCube] Cube generation complete");
     }
 
     private void generateHollowCube(ServerLevel world, BlockPos pos1, BlockPos pos2, BlockState state) {
@@ -90,10 +90,10 @@ public class SpecterCube {
 
     }
 
-    public static SpecterCube readFromNBT(SpecterHandler handler, CompoundTag tag) {
+    public static SpectralCube readFromNBT(SpectralHandler handler, CompoundTag tag) {
         UUID owner = UUID.fromString(tag.getString("owner"));
         int position = tag.getInt("position");
-        SpecterCube cube = new SpecterCube(handler, owner, position);
+        SpectralCube cube = new SpectralCube(handler, owner, position);
         cube.height = tag.getInt("height");
         cube.spawnBlock = new BlockPos(
                 tag.getInt("spawnX"),

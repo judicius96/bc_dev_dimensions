@@ -2,8 +2,8 @@
   "format_version": "1.9.0",
   "credit": "Made with Blockbench",
   "textures": {
-    "3": "bc_dimensions:block/specterblock",
-    "particle": "bc_dimensions:block/specterblock"
+    "3": "bc_dimensions:block/spectralblock",
+    "particle": "bc_dimensions:block/spectralblock"
   },
   "elements": [
     {

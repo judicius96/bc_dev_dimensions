@@ -1,5 +1,6 @@
 {
   "type": "bc_dimensions:palette",
+  "coordinate_scale": 16.0,
   "generator": {
     "type": "minecraft:flat",
     "settings": {

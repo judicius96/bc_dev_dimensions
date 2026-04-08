@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "bc_dimensions:item/palette_brush"
+  }
+}

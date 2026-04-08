@@ -17,7 +17,7 @@ public final class DimKeys {
             ResourceKey.create(Registries.DIMENSION,
                     new ResourceLocation(BCDimensions.MODID, "mining_dimension"));
 
-    public static final ResourceKey<Level> SPECTER =
+    public static final ResourceKey<Level> SPECTRAL =
             ResourceKey.create(Registries.DIMENSION,
-                    new ResourceLocation(BCDimensions.MODID, "specter_dimension"));
+                    new ResourceLocation(BCDimensions.MODID, "spectral_dimension"));
 }

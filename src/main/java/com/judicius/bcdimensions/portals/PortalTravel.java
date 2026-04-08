@@ -14,32 +14,20 @@ import java.util.function.Predicate;
 
 public final class PortalTravel {
 
-    private PortalTravel() {
-        // utility class
-    }
+    private PortalTravel() {}
 
-    // -------------------------------------------------------------------------
-    // Public entry points for each portal type
-    // -------------------------------------------------------------------------
-
-    /**
-     * Overworld <-> Sand Dimension.
-     */
     public static void travelSand(ServerPlayer sp, BlockPos portalPos, Axis axis) {
         travelMirror(
                 sp,
                 portalPos,
                 axis,
-                DimKeys.SAND,                        // dimension
-                BCRegistry.SAND_PORTAL.get(),        // portal block in that dim
-                PortalUtils::canUseSandPortal,       // dimension gating
-                PortalUtils::buildSandReturnPortal   // frame + base builder
+                DimKeys.SAND,
+                BCRegistry.SAND_PORTAL.get(),
+                PortalUtils::canUseSandPortal,
+                PortalUtils::buildSandReturnPortal
         );
     }
 
-    /**
-     * Overworld <-> Mining Dimension.
-     */
     public static void travelMining(ServerPlayer sp, BlockPos portalPos, Axis axis) {
         travelMirror(
                 sp,
@@ -52,16 +40,6 @@ public final class PortalTravel {
         );
     }
 
-    // -------------------------------------------------------------------------
-    // Core shared logic
-    // -------------------------------------------------------------------------
-
-    /**
-     * Generic dimension travel:
-     *  - Uses 1:1 coordinates (same X/Z anchor as current portal).
-     *  - Reuses existing portal if found in target dim.
-     *  - Otherwise finds a safe pad, builds a return portal, and teleports there.
-     */
     private static void travelMirror(ServerPlayer sp,
                                      BlockPos portalPos,
                                      Axis axis,
@@ -72,17 +50,14 @@ public final class PortalTravel {
 
         Level level = sp.level();
 
-        // Dimension gating: only allow Overworld <-> mirrorDim
         if (!canUsePredicate.test(level)) {
             return;
         }
 
-        // Cooldown so we don't bounce back and forth instantly
-        if (!PortalUtils.checkAndSetPortalCooldown(sp, level, 30)) {
+        if (!PortalUtils.checkAndSetPortalCooldown(sp, level, 100)) {
             return;
         }
 
-        // Decide which way we're going: Overworld <-> mirrorDim
         ResourceKey<Level> toKey = (level.dimension() == mirrorDim)
                 ? Level.OVERWORLD
                 : mirrorDim;
@@ -92,45 +67,45 @@ public final class PortalTravel {
             return;
         }
 
-        // Anchor around the portal's block position.
-        // This preserves "same X/Y/Z" semantics between dimensions at a high level.
-        BlockPos origin = new BlockPos(
+        // Search from the player's current portal position in the target dimension
+        // using the same X/Z but scanning a 128 block radius — matches vanilla behaviour
+        BlockPos searchOrigin = new BlockPos(
                 portalPos.getX(),
                 portalPos.getY(),
                 portalPos.getZ()
         );
 
-        // 1) Try to find an existing portal in the target dimension near that same spot
         BlockPos existing = PortalUtils.findExistingPortal(
                 target,
-                origin,
-                32,          // search radius
+                searchOrigin,
+                128,
                 portalBlock,
                 null
         );
 
         if (existing != null) {
+            // Scan downward from portal to find solid floor
+            BlockPos floorPos = existing;
+            while (floorPos.getY() > target.getMinBuildHeight() &&
+                    target.isEmptyBlock(floorPos.below())) {
+                floorPos = floorPos.below();
+            }
+
             double x = existing.getX() + 0.5;
-            double y = existing.getY() + 0.1;
+            double y = floorPos.getY() + 0.1;
             double z = existing.getZ() + 0.5;
 
-            // push out of the portal so you're not standing in it
-            if (axis == Axis.Z) x += 1.01;   // portal faces +/-X
-            else if (axis == Axis.X) z += 1.01; // portal faces +/-Z
+            if (axis == Axis.Z) x += 1.01;
+            else if (axis == Axis.X) z += 1.01;
 
             sp.teleportTo(target, x, y, z, sp.getYRot(), sp.getXRot());
             return;
         }
 
-        // 2) No portal found → find a safe pad and build a fresh return portal
-
-        // This will move us out of solid stone or into a nearby cave if needed.
-        BlockPos base = PortalPlacement.findSafePad(target, origin);
-
-        // Build the frame + base at that pad
+        // No portal found within 128 blocks — build a fresh one
+        BlockPos base = PortalPlacement.findSafePad(target, searchOrigin);
         buildReturnPortal.accept(target, base);
 
-        // Land in the center of the pad, same as your old SandPortalBlock behavior
         sp.teleportTo(
                 target,
                 base.getX() + 2.5,

@@ -1,0 +1,11 @@
+{
+  "type": "bc_dimensions:spectral_dimension",
+  "generator": {
+    "type": "bc_dimensions:spectral_generator",
+    "biome_source": {
+      "type": "minecraft:fixed",
+      "biome": "bc_dimensions:spectral_void"
+    },
+    "settings": "bc_dimensions:spectral_void"
+  }
+}
