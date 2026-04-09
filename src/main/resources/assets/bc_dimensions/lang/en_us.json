@@ -2,6 +2,7 @@
   "item.bc_dimensions.spectral_key": "Spectral Key",
   "block.bc_dimensions.spectral_block": "Spectral Block",
   "block.bc_dimensions.palette_block": "Palette Floor",
-  "block.bc_dimensions.inverted_mycelium_block": "Ceiling Mycelium",
-  "biome.bc_dimensions.mossy_caverns": "Mossy Caverns"
+  "block.bc_dimensions.inverted_cave_mycelium_block": "Ceiling Cave Mycelium",
+  "biome.bc_dimensions.mossy_caverns": "Mossy Caverns",
+  "block.bc_dimensions.cave_mycelium_block": "Cave Mycelium"
 }

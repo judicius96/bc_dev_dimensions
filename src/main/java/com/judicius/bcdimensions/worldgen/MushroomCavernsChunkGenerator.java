@@ -55,7 +55,6 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
     private PerlinSimplexNoise ceilingNoise;
     private PerlinSimplexNoise floorBlockNoise;
     private PerlinSimplexNoise ceilingBlockNoise;
-    private PerlinSimplexNoise caveNoise;
 
     // Block pools — built once at construction, mod-aware
     private final List<Block> floorBlocks;
@@ -71,7 +70,6 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
         ceilingNoise      = new PerlinSimplexNoise(random, List.of(1));
         floorBlockNoise   = new PerlinSimplexNoise(random, List.of(2));
         ceilingBlockNoise = new PerlinSimplexNoise(random, List.of(3));
-        caveNoise         = new PerlinSimplexNoise(random, List.of(4));
 
         this.floorBlocks    = buildFloorBlocks();
         this.ceilingBlocks  = buildCeilingBlocks();
@@ -106,7 +104,7 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
 
     private static List<Block> buildCeilingBlocks() {
         List<Block> blocks = new ArrayList<>();
-        blocks.add(BCRegistry.INVERTED_MYCELIUM.get());
+        blocks.add(BCRegistry.INVERTED_CAVE_MYCELIUM.get());
         blocks.add(Blocks.ROOTED_DIRT);
         blocks.add(Blocks.DIRT);
         if (ModList.get().isLoaded("decorative_blocks")) {
@@ -143,7 +141,7 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
         double primary   = floorBlockNoise.getValue(x * 0.005, z * 0.005, false);
         double secondary = ceilingBlockNoise.getValue(x * 0.01, z * 0.01, false);
 
-        if (primary > -0.4) return Blocks.MYCELIUM.defaultBlockState();
+        if (primary > -0.4) return Blocks.DIRT.defaultBlockState();
         if (secondary > 0.2) return Blocks.MUD.defaultBlockState();
         return getPeatAlternative().defaultBlockState();
     }
@@ -152,13 +150,10 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
         double primary   = ceilingBlockNoise.getValue(x * 0.005, z * 0.005, false);
         double secondary = floorBlockNoise.getValue(x * 0.012, z * 0.012, false);
 
-        // Inverted mycelium — independent secondary patches (~20%)
-        if (secondary > 0.6) return BCRegistry.INVERTED_MYCELIUM.get().defaultBlockState();
+        if (secondary > 0.6) return BCRegistry.INVERTED_CAVE_MYCELIUM.get().defaultBlockState();
 
-        // Rocky dirt if available, otherwise rooted dirt absorbs its share
         if (primary < -0.2) {
             if (!ceilingBlocks.isEmpty() && ceilingBlocks.size() > 2) {
-                // rocky dirt is index 3 if decorative_blocks is loaded
                 return ceilingBlocks.get(ceilingBlocks.size() - 1).defaultBlockState();
             }
             return Blocks.ROOTED_DIRT.defaultBlockState();
@@ -213,8 +208,7 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
                     pos.set(minX + x, y, minZ + z);
                     BlockState state;
                     if (excluded) {
-                        // Let vanilla/biome handle this column
-                        state = getVanillaBlockStateForPosition(y, minBuildY, topBedrockStartY);
+                        state = getVanillaBlockStateForPosition(y, minBuildY, topBedrockStartY, floorY, ceilingY);
                     } else {
                         state = getBlockStateForPosition(
                                 y, floorY, ceilingY, minBuildY, topBedrockStartY,
@@ -238,7 +232,7 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
             }
         }
 
-        super.buildSurface(region, structures, randomState, chunk);
+        // DO NOT call super.buildSurface — vanilla would overwrite our cave air with terrain
     }
 
     private BlockState getBlockStateForPosition(
@@ -261,7 +255,7 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
             return Blocks.DEEPSLATE.defaultBlockState();
         }
 
-        // Below floor: sublayer 5 blocks deep, then solid stone
+        // Below floor: sublayer 5 blocks deep
         if (y < floorY - 1 && y >= floorY - 6) {
             return getSublayerBlock(worldX, y, worldZ);
         }
@@ -320,10 +314,12 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
         return 100 + (int)(noise * 8) + extraDrop;
     }
 
-    private BlockState getVanillaBlockStateForPosition(int y, int minBuildY, int topBedrockStartY) {
+    private BlockState getVanillaBlockStateForPosition(int y, int minBuildY, int topBedrockStartY, int floorY, int ceilingY) {
         if (y <= minBuildY + 4) return Blocks.BEDROCK.defaultBlockState();
         if (y >= topBedrockStartY) return Blocks.BEDROCK.defaultBlockState();
         if (y <= 32) return Blocks.DEEPSLATE.defaultBlockState();
+        // Preserve the open Y band even in excluded biomes
+        if (y >= floorY && y < ceilingY) return Blocks.AIR.defaultBlockState();
         return Blocks.STONE.defaultBlockState();
     }
 
@@ -341,6 +337,10 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
     public void applyCarvers(WorldGenRegion region, long seed, RandomState random,
                              BiomeManager biomeManager, StructureManager structureManager,
                              ChunkAccess chunk, GenerationStep.Carving step) {
-        // Vanilla carvers disabled — our chunk generator defines the cave shape
+        // Only run AIR carvers — our MiningCaveCarver skips the main cavern Y band
+        // LIQUID step disabled to prevent lava/water flooding the dimension
+        if (step == GenerationStep.Carving.AIR) {
+            super.applyCarvers(region, seed, random, biomeManager, structureManager, chunk, step);
+        }
     }
 }

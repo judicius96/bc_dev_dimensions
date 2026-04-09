@@ -1,17 +1,23 @@
 package com.judicius.bcdimensions.registry;
 
 import com.judicius.bcdimensions.BCDimensions;
+import com.judicius.bcdimensions.block.InvertedCaveMyceliumBlock;
 import com.judicius.bcdimensions.item.SpectralKeyItem;
 import com.judicius.bcdimensions.palette.PaletteBrush;
 import com.judicius.bcdimensions.portals.MiningPortalBlock;
 import com.judicius.bcdimensions.portals.SandPortalBlock;
+import com.judicius.bcdimensions.worldgen.MiningCaveCarver;
 import com.judicius.bcdimensions.worldgen.MushroomCavernsChunkGenerator;
 import com.judicius.bcdimensions.worldgen.SpectralChunkGenerator;
+import com.judicius.bcdimensions.worldgen.features.BWGMushroomFeature;
+import com.judicius.bcdimensions.worldgen.features.CaveMushroomFeature;
+import com.judicius.bcdimensions.worldgen.features.GlowShroomFeature;
 import com.judicius.bcdimensions.worldgen.features.WaterBowlFeature;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -20,6 +26,8 @@ import net.minecraft.world.level.block.MyceliumBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.biome.BiomeSource;
 import net.minecraft.world.level.chunk.ChunkGenerator;
+import net.minecraft.world.level.levelgen.carver.CaveCarverConfiguration;
+import net.minecraft.world.level.levelgen.carver.WorldCarver;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -47,6 +55,12 @@ public final class BCRegistry {
 
     public static final DeferredRegister<Feature<?>> FEATURES =
             DeferredRegister.create(ForgeRegistries.FEATURES, BCDimensions.MODID);
+
+    public static final DeferredRegister<WorldCarver<?>> CARVERS =
+            DeferredRegister.create(ForgeRegistries.WORLD_CARVERS, BCDimensions.MODID);
+
+    public static final DeferredRegister<Biome> BIOMES =
+            DeferredRegister.create(Registries.BIOME, BCDimensions.MODID);
 
     /* ===================== */
     /*        Blocks         */
@@ -82,15 +96,28 @@ public final class BCRegistry {
                             .noOcclusion()
                             .isValidSpawn((state, level, pos, type) -> false)));
 
-    public static final RegistryObject<Block> INVERTED_MYCELIUM =
-            BLOCKS.register("inverted_mycelium",
+    public static final RegistryObject<Block> CAVE_MYCELIUM =
+            BLOCKS.register("cave_mycelium",
                     () -> new MyceliumBlock(
                             BlockBehaviour.Properties.copy(Blocks.MYCELIUM)
+                                    .lightLevel(state -> 4)
                     ));
 
-    public static final RegistryObject<Item> INVERTED_MYCELIUM_ITEM =
-            ITEMS.register("inverted_mycelium",
-                    () -> new BlockItem(INVERTED_MYCELIUM.get(), new Item.Properties()));
+    public static final RegistryObject<Item> CAVE_MYCELIUM_ITEM =
+            ITEMS.register("cave_mycelium",
+                    () -> new BlockItem(CAVE_MYCELIUM.get(), new Item.Properties()));
+
+    public static final RegistryObject<Block> INVERTED_CAVE_MYCELIUM =
+            BLOCKS.register("inverted_cave_mycelium",
+                    () -> new InvertedCaveMyceliumBlock(
+                            BlockBehaviour.Properties.copy(Blocks.MYCELIUM)
+                                    .randomTicks()
+                                    .lightLevel(state -> 4)
+                    ));
+
+    public static final RegistryObject<Item> INVERTED_CAVE_MYCELIUM_ITEM =
+            ITEMS.register("inverted_cave_mycelium",
+                    () -> new BlockItem(INVERTED_CAVE_MYCELIUM.get(), new Item.Properties()));
 
     public static final RegistryObject<Block> RADIANT_LICHEN =
             BLOCKS.register("radiant_lichen",
@@ -120,6 +147,26 @@ public final class BCRegistry {
             FEATURES.register("water_bowl",
                     () -> new WaterBowlFeature(NoneFeatureConfiguration.CODEC));
 
+    public static final RegistryObject<Feature<NoneFeatureConfiguration>> CAVE_MUSHROOM =
+            FEATURES.register("cave_mushroom",
+                    () -> new CaveMushroomFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final RegistryObject<Feature<NoneFeatureConfiguration>> BWG_MUSHROOM =
+            FEATURES.register("bwg_mushroom",
+                    () -> new BWGMushroomFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final RegistryObject<Feature<NoneFeatureConfiguration>> GLOW_SHROOM =
+            FEATURES.register("glow_shroom",
+                    () -> new GlowShroomFeature(NoneFeatureConfiguration.CODEC));
+
+    /* ===================== */
+    /*       Carvers         */
+    /* ===================== */
+
+    public static final RegistryObject<WorldCarver<?>> MINING_CAVE_CARVER =
+            CARVERS.register("mining_cave",
+                    () -> new MiningCaveCarver(CaveCarverConfiguration.CODEC));
+
     /* ===================== */
     /*   Chunk Generators    */
     /* ===================== */
@@ -142,6 +189,8 @@ public final class BCRegistry {
         CHUNK_GENERATORS.register(bus);
         BIOME_SOURCES.register(bus);
         FEATURES.register(bus);
+        CARVERS.register(bus);
+        BIOMES.register(bus);
     }
 
     private BCRegistry() {}
