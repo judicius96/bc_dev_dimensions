@@ -1,7 +1,7 @@
 package com.judicius.bcdimensions.commands;
 
 import com.judicius.bcdimensions.BCDimensions;
-import com.judicius.bcdimensions.specter.SpecterHandler;
+import com.judicius.bcdimensions.spectral.SpectralHandler;
 import com.mojang.brigadier.CommandDispatcher;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -32,10 +32,10 @@ public class BCCommands {
                     ResourceLocation.fromNamespaceAndPath(BCDimensions.MODID, "mining_dimension")
             );
 
-    private static final ResourceKey<Level> SPECTER_DIM =
+    private static final ResourceKey<Level> SPECTRAL_DIM =
             ResourceKey.create(
                     Registries.DIMENSION,
-                    ResourceLocation.fromNamespaceAndPath(BCDimensions.MODID, "specter_dimension")
+                    ResourceLocation.fromNamespaceAndPath(BCDimensions.MODID, "spectral_dimension")
             );
 
     @SubscribeEvent
@@ -66,16 +66,16 @@ public class BCCommands {
                     return 1;
                 }));
 
-        // /bc_specter - teleports to player's personal specter cube
-        d.register(Commands.literal("bc_specter")
+        // /bc_spectral - teleports to player's personal spectral cube
+        d.register(Commands.literal("bc_spectral")
                 .requires(src -> src.hasPermission(2))
                 .executes(ctx -> {
                     MinecraftServer server = ctx.getSource().getServer();
-                    ServerLevel target = server.getLevel(SPECTER_DIM);
+                    ServerLevel target = server.getLevel(SPECTRAL_DIM);
                     if (target == null) return 0;
                     ServerPlayer sp = ctx.getSource().getPlayerOrException();
 
-                    SpecterHandler handler = SpecterHandler.get(target);
+                    SpectralHandler handler = SpectralHandler.get(target);
                     handler.teleportPlayerToCube(sp);
                     return 1;
                 }));

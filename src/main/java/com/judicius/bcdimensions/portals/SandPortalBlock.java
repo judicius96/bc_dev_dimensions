@@ -2,6 +2,8 @@ package com.judicius.bcdimensions.portals;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction.Axis;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -25,8 +27,21 @@ public class SandPortalBlock extends NetherPortalBlock {
     @Override
     public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
         if (level.isClientSide || !(entity instanceof ServerPlayer sp)) return;
+        if (!PortalUtils.checkAndSetPortalCooldown(sp, level, 100)) return;
+        if (!PortalUtils.canUseSandPortal(level)) return;
 
-        Axis axis = state.getValue(AXIS);
-        PortalTravel.travelSand(sp, pos, axis);
+        ResourceKey<Level> destination = level.dimension() == DimKeys.SAND
+                ? Level.OVERWORLD
+                : DimKeys.SAND;
+
+        ServerLevel destLevel = sp.server.getLevel(destination);
+        if (destLevel == null) return;
+
+        // Save overworld portal position before travelling to sand dimension
+        if (level.dimension() == Level.OVERWORLD) {
+            BCSandTeleporter.saveOverworldPortal(sp.getUUID(), pos);
+        }
+
+        entity.changeDimension(destLevel, new BCSandTeleporter(destLevel));
     }
 }

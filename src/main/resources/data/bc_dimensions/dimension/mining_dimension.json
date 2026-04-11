@@ -28,6 +28,102 @@
             "depth": 0.0,
             "offset": 0.0
           }
+        },
+        {
+          "biome": "biomesoplenty:glowing_grotto",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": 0.0,
+            "erosion": 0.7,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "quark:glimmering_weald",
+          "parameters": {
+            "temperature": -0.6,
+            "humidity": -0.6,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": 0.5,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "regions_unexplored:bioshroom_caves",
+          "parameters": {
+            "temperature": 0.2,
+            "humidity": 0.9,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": -0.4,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "regions_unexplored:ancient_delta",
+          "parameters": {
+            "temperature": 0.7,
+            "humidity": 0.4,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": 0.8,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "regions_unexplored:prismachasm",
+          "parameters": {
+            "temperature": 0.4,
+            "humidity": 0.1,
+            "continentalness": -0.9,
+            "erosion": 0.0,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "bc_dimensions:mining_default",
+          "parameters": {
+            "temperature": 0.0,
+            "humidity": 0.0,
+            "continentalness": 0.0,
+            "erosion": 0.0,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "bc_dimensions:mossy_cavern",
+          "parameters": {
+            "temperature": 0.3,
+            "humidity": 0.7,
+            "continentalness": 0.2,
+            "erosion": 0.0,
+            "weirdness": 0.0,
+            "depth": 0.0,
+            "offset": 0.0
+          }
+        },
+        {
+          "biome": "bc_dimensions:pale_moss_growth",
+          "parameters": {
+            "temperature": -0.3,
+            "humidity": 0.5,
+            "continentalness": 0.3,
+            "erosion": 0.0,
+            "weirdness": 0.3,
+            "depth": 0.0,
+            "offset": 0.0
+          }
         }
       ]
     },

@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "thermal:tin_ore",
+    "raw_block": "thermal:raw_tin_block",
+    "y_min": -64,
+    "y_max": 30
+  }
+}

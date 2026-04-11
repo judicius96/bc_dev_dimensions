@@ -1,10 +1,14 @@
 package com.judicius.bcdimensions.command;
 
+import com.judicius.bcdimensions.BCDimensionsConfig;
+import com.judicius.bcdimensions.palette.PaletteProtectionData;
 import com.judicius.bcdimensions.palette.PaletteStateData;
+import com.judicius.bcdimensions.registry.BCRegistry;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -13,6 +17,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -27,114 +32,147 @@ import java.util.*;
 
 public class PaletteCommand {
 
+    private static final ResourceKey<Level> PALETTE_DIM_KEY = ResourceKey.create(
+            net.minecraft.core.registries.Registries.DIMENSION,
+            new ResourceLocation("bc_dimensions", "palette")
+    );
+
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("palette")
+
+                // /palette enter
                 .then(Commands.literal("enter")
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
                             ServerPlayer player = source.getPlayerOrException();
                             ServerLevel currentLevel = (ServerLevel) player.level();
 
-                            // Get palette state data
                             PaletteStateData paletteData = PaletteStateData.get(currentLevel);
                             PaletteStateData.PlayerPaletteState state = paletteData.getState(player.getUUID());
 
-                            // Check if player is already in Palette or has unfinished session
+                            // Capture return location BEFORE teleport
+                            String returnDim = currentLevel.dimension().location().toString();
+                            int returnX = player.blockPosition().getX();
+                            int returnY = player.blockPosition().getY();
+                            int returnZ = player.blockPosition().getZ();
+                            float returnYaw = player.getYRot();
+                            float returnPitch = player.getXRot();
+
+                            // Calculate per-player Palette coordinates using scale factor
+                            double paletteX = returnX * 16 + 0.5;
+                            double paletteZ = returnZ * 16 + 0.5;
+
                             if (state.isInside) {
-                                player.sendSystemMessage(Component.literal("§eYou're already in a Palette session. Use /palette exit to return."));
-                                // Just teleport them back to Palette, don't create new snapshot
+                                // Already has a session — just teleport them back in, no new snapshot
+                                player.sendSystemMessage(Component.literal("§eYou have an active Palette session. Returning you to it."));
                             } else {
-                                // Clean entry - save snapshot AND return location
+                                // Fresh entry — snapshot before clearing
                                 state.saveSnapshot(player);
-                                state.saveReturnLocation(
-                                        player.level().dimension().location().toString(),
-                                        player.blockPosition().getX(),
-                                        player.blockPosition().getY(),
-                                        player.blockPosition().getZ(),
-                                        player.getYRot(),
-                                        player.getXRot()
-                                );
                                 state.isInside = true;
                                 paletteData.markDirty();
                             }
 
-                            // Teleport to palette dimension
-                            ServerLevel paletteLevel = player.getServer().getLevel(
-                                    ResourceKey.create(net.minecraft.core.registries.Registries.DIMENSION,
-                                            new ResourceLocation("bc_dimensions", "palette"))
-                            );
+                            // Save return location into PaletteStateData before teleport
+                            state.returnDim = returnDim;
+                            state.returnX = returnX;
+                            state.returnY = returnY;
+                            state.returnZ = returnZ;
+                            state.returnYaw = returnYaw;
+                            state.returnPitch = returnPitch;
+                            paletteData.markDirty();
 
-                            if (paletteLevel != null) {
-                                player.teleportTo(paletteLevel, 0.5, -63, 0.5, 0, 0);
-                                player.sendSystemMessage(Component.literal("Welcome to the Palette dimension!"));
-                                return 1;
-                            } else {
+                            ServerLevel paletteLevel = player.getServer().getLevel(PALETTE_DIM_KEY);
+                            if (paletteLevel == null) {
                                 source.sendFailure(Component.literal("Palette dimension not found!"));
                                 return 0;
                             }
+
+                            player.teleportTo(paletteLevel, paletteX, -63, paletteZ, 0, 0);
+
+                            // Clear inventory and give paintbrush AFTER teleport
+                            player.getInventory().clearContent();
+                            ItemStack brush = new ItemStack(BCRegistry.PALETTE_BRUSH.get());
+                            player.getInventory().add(brush);
+
+                            player.sendSystemMessage(Component.literal("§aWelcome to the Palette dimension! Right-click blocks to copy a stack. Left-click to remove."));
+                            return 1;
                         }))
+
+                // /palette exit
                 .then(Commands.literal("exit")
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
                             ServerPlayer player = source.getPlayerOrException();
                             ServerLevel currentLevel = (ServerLevel) player.level();
 
-                            // Get palette state data
                             PaletteStateData paletteData = PaletteStateData.get(currentLevel);
                             PaletteStateData.PlayerPaletteState state = paletteData.getState(player.getUUID());
 
-                            // Restore snapshot if it exists
+                            // Restore snapshot
                             if (state.hasSnapshot) {
                                 state.restoreSnapshot(player);
-                            }
-
-                            // Get return location from persistent storage
-                            if (!state.hasReturnLocation()) {
-                                // EMERGENCY FALLBACK: No return location, send to world spawn
-                                ServerLevel overworld = player.getServer().overworld();
-                                BlockPos spawn = overworld.getSharedSpawnPos();
-
-                                player.teleportTo(overworld,
-                                        spawn.getX() + 0.5,
-                                        spawn.getY(),
-                                        spawn.getZ() + 0.5,
-                                        0, 0);
-
-                                // Clear palette state
-                                state.clear();
-                                paletteData.markDirty();
-
-                                player.sendSystemMessage(Component.literal("§eReturned to world spawn (return location was lost)."));
-                                return 1;
-                            }
-
-                            // Normal return using saved location
-                            ResourceKey<Level> returnDim = ResourceKey.create(
-                                    net.minecraft.core.registries.Registries.DIMENSION,
-                                    new ResourceLocation(state.returnDimension)
-                            );
-
-                            ServerLevel returnLevel = player.getServer().getLevel(returnDim);
-
-                            if (returnLevel != null) {
-                                player.teleportTo(returnLevel,
-                                        state.returnX + 0.5,
-                                        state.returnY,
-                                        state.returnZ + 0.5,
-                                        state.returnYaw,
-                                        state.returnPitch);
-
-                                // Clear palette state
-                                state.clear();
-                                paletteData.markDirty();
-
-                                player.sendSystemMessage(Component.literal("Returned to previous location!"));
-                                return 1;
                             } else {
-                                source.sendFailure(Component.literal("Return dimension not found!"));
+                                source.sendFailure(Component.literal("No palette snapshot found. Contact an admin."));
                                 return 0;
                             }
+
+                            // Get return location from PaletteStateData
+                            if (state.returnDim == null || state.returnDim.isEmpty()) {
+                                source.sendFailure(Component.literal("No return location found! Contact an admin."));
+                                return 0;
+                            }
+
+                            ResourceKey<Level> dim = ResourceKey.create(
+                                    net.minecraft.core.registries.Registries.DIMENSION,
+                                    new ResourceLocation(state.returnDim));
+                            BlockPos pos = new BlockPos(state.returnX, state.returnY, state.returnZ);
+                            float yaw = state.returnYaw;
+                            float pitch = state.returnPitch;
+
+                            ServerLevel returnLevel = player.getServer().getLevel(dim);
+                            if (returnLevel == null) {
+                                source.sendFailure(Component.literal("Return dimension not found! Contact an admin."));
+                                return 0;
+                            }
+
+                            player.teleportTo(returnLevel,
+                                    pos.getX() + 0.5,
+                                    pos.getY(),
+                                    pos.getZ() + 0.5,
+                                    yaw, pitch);
+
+                            // Clear palette state (also clears return location)
+                            state.clear();
+                            paletteData.markDirty();
+
+                            player.sendSystemMessage(Component.literal("§aReturned to previous location."));
+                            return 1;
                         }))
+
+                // /palette restore <player> — OP only
+                .then(Commands.literal("restore")
+                        .requires(source -> source.hasPermission(2))
+                        .then(Commands.argument("target", EntityArgument.player())
+                                .executes(context -> {
+                                    CommandSourceStack source = context.getSource();
+                                    ServerPlayer target = EntityArgument.getPlayer(context, "target");
+                                    ServerLevel level = source.getLevel();
+
+                                    PaletteStateData paletteData = PaletteStateData.get(level);
+                                    PaletteStateData.PlayerPaletteState state = paletteData.getState(target.getUUID());
+
+                                    if (!state.hasSnapshot) {
+                                        source.sendFailure(Component.literal("No palette snapshot found for " + target.getName().getString()));
+                                        return 0;
+                                    }
+
+                                    state.restoreSnapshot(target);
+                                    source.sendSuccess(() -> Component.literal("§aPalette snapshot restored for " + target.getName().getString()), true);
+                                    target.sendSystemMessage(Component.literal("§aYour palette snapshot has been restored by an admin."));
+                                    return 1;
+                                })))
+
+                // /palette clear — must be in Palette dimension
                 .then(Commands.literal("clear")
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
@@ -149,6 +187,8 @@ public class PaletteCommand {
                             clearGallery(level, player);
                             return 1;
                         }))
+
+                // /palette <filter> — generate gallery
                 .then(Commands.argument("filter", StringArgumentType.string())
                         .executes(context -> {
                             CommandSourceStack source = context.getSource();
@@ -161,7 +201,6 @@ public class PaletteCommand {
 
                             ServerPlayer player = source.getPlayerOrException();
                             String filter = StringArgumentType.getString(context, "filter");
-
                             generateGallery(level, player, filter);
                             return 1;
                         })));
@@ -169,7 +208,10 @@ public class PaletteCommand {
 
     private static void generateGallery(ServerLevel level, ServerPlayer player, String filter) {
         Direction playerFacing = player.getDirection();
+        Direction spreadDir = playerFacing.getClockWise();
         BlockPos startPos = player.blockPosition().relative(playerFacing, 5);
+
+        boolean isGrid = BCDimensionsConfig.GALLERY_MODE.get().equalsIgnoreCase("GRID");
 
         Map<String, List<Block>> blocksByMod = new LinkedHashMap<>();
         Set<String> seenTranslationKeys = new HashSet<>();
@@ -179,18 +221,11 @@ public class PaletteCommand {
             if (id != null) {
                 String path = id.getPath();
 
-                if (!containsWholeWord(path, filter)) {
-                    return;
-                }
-
-                if (isNonBuildingBlock(block, path)) {
-                    return;
-                }
+                if (!containsWholeWord(path, filter)) return;
+                if (isNonBuildingBlock(block, path)) return;
 
                 String translationKey = block.getDescriptionId();
-                if (seenTranslationKeys.contains(translationKey)) {
-                    return;
-                }
+                if (seenTranslationKeys.contains(translationKey)) return;
                 seenTranslationKeys.add(translationKey);
 
                 String modId = id.getNamespace();
@@ -198,7 +233,8 @@ public class PaletteCommand {
             }
         });
 
-        int currentZ = 0;
+        int currentZ = 0;   // spread direction offset (right)
+        int currentRow = 0; // forward direction offset (away from player), grid mode only
         int totalBlocks = 0;
 
         for (Map.Entry<String, List<Block>> entry : blocksByMod.entrySet()) {
@@ -217,14 +253,22 @@ public class PaletteCommand {
             for (Block block : blocks) {
                 String blockPath = ForgeRegistries.BLOCKS.getKey(block).getPath();
 
-                // Skip gates - they'll be placed by their matching fence
-                if (blockPath.contains("fence_gate")) {
-                    continue;
+                if (blockPath.contains("fence_gate")) continue;
+
+                // Grid mode — wrap to new row at 72
+                if (isGrid && (currentZ + columnZ) >= 72) {
+                    currentRow += 5;
+                    currentZ = 0;
+                    columnZ = 0;
+                    columnHeight = 0;
                 }
+
+                BlockPos rowBase = isGrid
+                        ? startPos.relative(playerFacing, currentRow)
+                        : startPos;
 
                 BlockState state = block.defaultBlockState();
 
-                // Remove waterlogging from all blocks
                 if (state.hasProperty(BlockStateProperties.WATERLOGGED)) {
                     state = state.setValue(BlockStateProperties.WATERLOGGED, false);
                 }
@@ -233,37 +277,32 @@ public class PaletteCommand {
                     state = state.setValue(LeavesBlock.PERSISTENT, true);
                 }
 
-                // Handle doors - take 2 vertical spaces, then move to next column
+                // Doors
                 if (blockPath.contains("door") && !blockPath.contains("trap")) {
-                    BlockPos pos = startPos.offset(0, 0, currentZ + columnZ);
+                    BlockPos pos = rowBase.relative(spreadDir, currentZ + columnZ);
 
                     if (state.hasProperty(BlockStateProperties.DOUBLE_BLOCK_HALF) &&
                             state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-                        BlockState lowerState = state
+                        state = state
                                 .setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.LOWER)
                                 .setValue(BlockStateProperties.HORIZONTAL_FACING, playerFacing);
-                        level.setBlock(pos, lowerState, 3);
+                        level.setBlock(pos, state, 3);
 
-                        BlockState upperState = state
+                        BlockState upper = block.defaultBlockState()
                                 .setValue(BlockStateProperties.DOUBLE_BLOCK_HALF, DoubleBlockHalf.UPPER)
                                 .setValue(BlockStateProperties.HORIZONTAL_FACING, playerFacing);
-                        level.setBlock(pos.above(), upperState, 3);
+                        level.setBlock(pos.above(), upper, 3);
 
                         totalBlocks++;
                         columnZ++;
                         columnHeight = 0;
-                        continue;
                     }
+                    continue;
                 }
 
-                // Handle pressure plates - solo column
+                // Pressure plates
                 if (blockPath.contains("pressure_plate")) {
-                    BlockPos pos = startPos.offset(0, 0, currentZ + columnZ);
-
-                    if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
-                        state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, playerFacing);
-                    }
-
+                    BlockPos pos = rowBase.relative(spreadDir, currentZ + columnZ);
                     level.setBlock(pos, state, 3);
                     totalBlocks++;
                     columnZ++;
@@ -271,9 +310,9 @@ public class PaletteCommand {
                     continue;
                 }
 
-                // Handle fences - place at Y=2 with gate next to it
+                // Fences + gates
                 if (blockPath.contains("fence") && !blockPath.contains("gate")) {
-                    BlockPos fencePos = startPos.offset(0, 2, currentZ + columnZ);
+                    BlockPos fencePos = rowBase.relative(spreadDir, currentZ + columnZ).above(2);
 
                     if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
                         state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, playerFacing);
@@ -282,31 +321,26 @@ public class PaletteCommand {
                     level.setBlock(fencePos, state, 3);
                     totalBlocks++;
 
-                    // Place gate next to fence at same height
                     String gateId = blockPath.replace("fence", "fence_gate");
                     Block gateBlock = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(modId, gateId));
 
                     if (gateBlock != null && gateBlock != Blocks.AIR) {
-                        BlockPos gatePos = fencePos.offset(0, 0, 1);
+                        BlockPos gatePos = fencePos.relative(spreadDir, 1);
                         BlockState gateState = gateBlock.defaultBlockState();
 
-                        // Remove waterlogging from gate
                         if (gateState.hasProperty(BlockStateProperties.WATERLOGGED)) {
                             gateState = gateState.setValue(BlockStateProperties.WATERLOGGED, false);
                         }
-
                         if (gateState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
                             gateState = gateState.setValue(BlockStateProperties.HORIZONTAL_FACING, playerFacing);
                         }
                         level.setBlock(gatePos, gateState, 3);
                         totalBlocks++;
                     }
-
-                    // Don't increment columnHeight, leave space for other blocks
                     continue;
                 }
 
-                // Handle trapdoors
+                // Trapdoors
                 if (blockPath.contains("trapdoor")) {
                     if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING) &&
                             state.hasProperty(BlockStateProperties.HALF)) {
@@ -316,10 +350,7 @@ public class PaletteCommand {
                     }
                 }
 
-                // Regular blocks - stack up to 3 high
-                BlockPos pos = startPos.offset(0, columnHeight, currentZ + columnZ);
-
-                // Rotate directional blocks
+                // Regular blocks — rotate to face player, stack up to 3 high
                 if (state.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
                     state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, playerFacing);
                 } else if (state.hasProperty(BlockStateProperties.ROTATION_16)) {
@@ -333,11 +364,11 @@ public class PaletteCommand {
                     state = state.setValue(BlockStateProperties.ROTATION_16, rotation);
                 }
 
+                BlockPos pos = rowBase.relative(spreadDir, currentZ + columnZ).above(columnHeight);
                 level.setBlock(pos, state, 3);
                 totalBlocks++;
                 columnHeight++;
 
-                // Move to next column when we hit 3 blocks
                 if (columnHeight >= 3) {
                     columnZ++;
                     columnHeight = 0;
@@ -347,7 +378,7 @@ public class PaletteCommand {
             currentZ += (columnZ + 2);
         }
 
-        player.sendSystemMessage(Component.literal("Generated gallery with " + totalBlocks + " blocks from " + blocksByMod.size() + " mods!"));
+        player.sendSystemMessage(Component.literal("§aGenerated gallery with " + totalBlocks + " blocks from " + blocksByMod.size() + " mods."));
     }
 
     private static int getBlockPriority(String path) {
@@ -371,79 +402,57 @@ public class PaletteCommand {
         int cleared = 0;
         int floorY = player.blockPosition().getY() - 1;
 
+        PaletteProtectionData protection = PaletteProtectionData.get(level);
+        int skipped = 0;
+
         for (int x = -100; x < 100; x++) {
             for (int y = 0; y < 100; y++) {
                 for (int z = -100; z < 100; z++) {
                     BlockPos pos = startPos.offset(x, y, z);
-
-                    if (pos.getY() <= floorY) {
+                    if (pos.getY() <= floorY) continue;
+                    if (level.getBlockState(pos).isAir()) continue;
+                    if (protection.isProtected(pos)) {
+                        skipped++;
                         continue;
                     }
-
-                    if (!level.getBlockState(pos).isAir()) {
-                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
-                        cleared++;
-                    }
+                    level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+                    cleared++;
                 }
             }
         }
 
-        // Clear dropped items
         net.minecraft.world.phys.AABB clearBox = new net.minecraft.world.phys.AABB(
                 startPos.offset(-100, 0, -100),
                 startPos.offset(100, 100, 100)
         );
 
         List<net.minecraft.world.entity.item.ItemEntity> items = level.getEntitiesOfClass(
-                net.minecraft.world.entity.item.ItemEntity.class,
-                clearBox
-        );
+                net.minecraft.world.entity.item.ItemEntity.class, clearBox);
 
         for (net.minecraft.world.entity.item.ItemEntity item : items) {
             item.discard();
         }
 
-        player.sendSystemMessage(Component.literal("Cleared " + cleared + " blocks and " + items.size() + " items!"));
+        player.sendSystemMessage(Component.literal("§aCleared " + cleared + " blocks and " + items.size() + " items. §e" + skipped + " protected blocks skipped."));
     }
 
     private static boolean containsWholeWord(String text, String word) {
-        // Handle multi-word searches (like "dark_oak")
-        if (word.contains("_")) {
-            return text.contains(word);
-        }
+        if (word.contains("_")) return text.contains(word);
 
         String[] parts = text.split("_");
-
         boolean hasWord = false;
         for (String part : parts) {
-            if (part.equals(word)) {
-                hasWord = true;
-                break;
-            }
+            if (part.equals(word)) { hasWord = true; break; }
         }
-
         if (!hasWord) return false;
-
-        // When searching for "oak", exclude dark_oak
-        if (word.equals("oak") && text.contains("dark")) {
-            return false;
-        }
-
-        // When searching for "oak", exclude pale_oak
-        if (word.equals("oak") && text.contains("pale")) {
-            return false;
-        }
-
+        if (word.equals("oak") && text.contains("dark")) return false;
+        if (word.equals("oak") && text.contains("pale")) return false;
         return true;
     }
 
     private static boolean isNonBuildingBlock(Block block, String path) {
-        // Check tags
-        if (block.defaultBlockState().is(BlockTags.FLOWERS)) {
-            return true;
-        }
+        if (block.defaultBlockState().is(BlockTags.FLOWERS)) return true;
 
-        // Check path strings
         return path.contains("propagule") ||
                 path.contains("potted") ||
                 path.contains("torch") ||

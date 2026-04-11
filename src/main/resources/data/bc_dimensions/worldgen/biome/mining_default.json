@@ -1,0 +1,82 @@
+{
+  "has_precipitation": false,
+  "temperature": 0.5,
+  "downfall": 0.5,
+  "effects": {
+    "sky_color": 0,
+    "fog_color": 3160064,
+    "water_color": 4159204,
+    "water_fog_color": 329011,
+    "particle": {
+      "options": {
+        "type": "minecraft:warped_spore"
+      },
+      "probability": 0.01
+    },
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    }
+  },
+  "spawners": {
+    "monster": [],
+    "creature": [],
+    "ambient": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "underground_water_creature": [],
+    "axolotls": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "carvers": {
+    "air": [
+      "bc_dimensions:mining_cave"
+    ]
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "bc_dimensions:cave_mycelium_patch",
+      "bc_dimensions:mining_vein_copper",
+      "bc_dimensions:mining_vein_lead",
+      "bc_dimensions:mining_vein_tin",
+      "bc_dimensions:mining_vein_iron",
+      "bc_dimensions:mining_vein_silver",
+      "bc_dimensions:mining_vein_zinc",
+      "bc_dimensions:mining_vein_gold",
+      "bc_dimensions:mining_vein_coal",
+      "bc_dimensions:mining_vein_nickel",
+      "bc_dimensions:mining_vein_redstone",
+      "bc_dimensions:mining_vein_niter",
+      "bc_dimensions:mining_vein_sulfur",
+      "bc_dimensions:mining_vein_diamond",
+      "bc_dimensions:mining_seam_copper",
+      "bc_dimensions:mining_seam_lead",
+      "bc_dimensions:mining_seam_tin",
+      "bc_dimensions:mining_seam_iron",
+      "bc_dimensions:mining_seam_silver",
+      "bc_dimensions:mining_seam_zinc",
+      "bc_dimensions:mining_seam_gold",
+      "bc_dimensions:mining_seam_coal",
+      "bc_dimensions:mining_seam_nickel"
+    ],
+    [
+      "bc_dimensions:mining_glow_shrooms",
+      "bc_dimensions:mining_bwg_mushrooms",
+      "bc_dimensions:mining_large_mushrooms",
+      "bc_dimensions:mining_small_brown_mushrooms",
+      "bc_dimensions:mining_small_red_mushrooms"
+    ]
+  ]
+}

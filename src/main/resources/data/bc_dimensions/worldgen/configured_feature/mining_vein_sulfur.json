@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "thermal:sulfur_ore",
+    "raw_block": "thermal:sulfur_ore",
+    "y_min": 160,
+    "y_max": 220
+  }
+}

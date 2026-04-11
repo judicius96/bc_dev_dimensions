@@ -1,0 +1,8 @@
+{
+  "type": "bc_dimensions:mining_seam",
+  "config": {
+    "raw_block": "thermal:raw_silver_block",
+    "y_min": -20,
+    "y_max": 55
+  }
+}

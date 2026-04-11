@@ -1,0 +1,60 @@
+{
+  "has_precipitation": false,
+  "temperature": 0.5,
+  "downfall": 0.9,
+  "effects": {
+    "sky_color": 0,
+    "fog_color": 2696968,
+    "water_color": 4159204,
+    "water_fog_color": 329011,
+    "mood_sound": {
+      "sound": "minecraft:ambient.cave",
+      "tick_delay": 6000,
+      "block_search_extent": 8,
+      "offset": 2.0
+    },
+    "particle": {
+      "options": {
+        "type": "minecraft:spore_blossom_air"
+      },
+      "probability": 0.005
+    }
+  },
+  "spawners": {
+    "monster": [],
+    "creature": [],
+    "ambient": [],
+    "water_creature": [],
+    "water_ambient": [],
+    "underground_water_creature": [],
+    "axolotls": [],
+    "misc": []
+  },
+  "spawn_costs": {},
+  "carvers": {
+    "air": [
+      "bc_dimensions:mining_cave"
+    ]
+  },
+  "features": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [
+      "bc_dimensions:water_bowl",
+      "bc_dimensions:mossy_cobble_formation"
+    ],
+    [
+      "bc_dimensions:mossy_cavern_carpet",
+      "bc_dimensions:mossy_cavern_small_moss_bush",
+      "bc_dimensions:mossy_cavern_large_moss_bush",
+      "bc_dimensions:mossy_cavern_hanging_moss"
+    ],
+    []
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "display": {
+    "icon": { "item": "minecraft:flint_and_steel" },
+    "title": { "translate": "advancements.bc_dimensions.rock_and_stone.title" },
+    "description": { "translate": "advancements.bc_dimensions.rock_and_stone.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "bc_dimensions:root",
+  "criteria": {
+    "light_mining_portal": {
+      "trigger": "minecraft:item_used_on_block",
+      "conditions": {
+        "location": {
+          "block": {
+            "blocks": ["bc_dimensions:granite_portal"]
+          }
+        },
+        "item": {
+          "items": ["minecraft:flint_and_steel"]
+        }
+      }
+    }
+  }
+}

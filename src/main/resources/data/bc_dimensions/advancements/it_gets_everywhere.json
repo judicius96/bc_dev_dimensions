@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": { "item": "minecraft:sand" },
+    "title": { "translate": "advancements.bc_dimensions.it_gets_everywhere.title" },
+    "description": { "translate": "advancements.bc_dimensions.it_gets_everywhere.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "bc_dimensions:wheres_the_beach",
+  "criteria": {
+    "enter_sand": {
+      "trigger": "minecraft:location",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "location": {
+                "dimension": "bc_dimensions:sand_dimension"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

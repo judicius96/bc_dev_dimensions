@@ -1,0 +1,30 @@
+{
+  "display": {
+    "icon": { "item": "bc_dimensions:palette_brush" },
+    "title": { "translate": "advancements.bc_dimensions.imagination_station.title" },
+    "description": { "translate": "advancements.bc_dimensions.imagination_station.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "bc_dimensions:root",
+  "criteria": {
+    "enter_palette": {
+      "trigger": "minecraft:location",
+      "conditions": {
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "location": {
+                "dimension": "bc_dimensions:palette_dimension"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}
