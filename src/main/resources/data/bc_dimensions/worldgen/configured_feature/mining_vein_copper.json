@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "minecraft:copper_ore",
+    "raw_block": "minecraft:raw_copper_block",
+    "y_min": -64,
+    "y_max": 30
+  }
+}

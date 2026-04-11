@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "minecraft:gold_ore",
+    "raw_block": "minecraft:raw_gold_block",
+    "y_min": 100,
+    "y_max": 180
+  }
+}

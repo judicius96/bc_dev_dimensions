@@ -1,0 +1,31 @@
+{
+  "display": {
+    "icon": { "item": "minecraft:raw_gold_block" },
+    "title": { "translate": "advancements.bc_dimensions.were_rich.title" },
+    "description": { "translate": "advancements.bc_dimensions.were_rich.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "bc_dimensions:dwarven_dreams",
+  "criteria": {
+    "mine_gold_seam": {
+      "trigger": "minecraft:block_mined",
+      "conditions": {
+        "block": "minecraft:raw_gold_block",
+        "player": [
+          {
+            "condition": "minecraft:entity_properties",
+            "entity": "this",
+            "predicate": {
+              "location": {
+                "dimension": "bc_dimensions:mining_dimension"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

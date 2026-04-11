@@ -4,6 +4,7 @@ import com.judicius.bcdimensions.BCDimensions;
 import com.judicius.bcdimensions.block.InvertedCaveMyceliumBlock;
 import com.judicius.bcdimensions.item.SpectralKeyItem;
 import com.judicius.bcdimensions.palette.PaletteBrush;
+import com.judicius.bcdimensions.portals.BCPoiTypes;
 import com.judicius.bcdimensions.portals.MiningPortalBlock;
 import com.judicius.bcdimensions.portals.SandPortalBlock;
 import com.judicius.bcdimensions.worldgen.MiningCaveCarver;
@@ -12,11 +13,19 @@ import com.judicius.bcdimensions.worldgen.SpectralChunkGenerator;
 import com.judicius.bcdimensions.worldgen.features.BWGMushroomFeature;
 import com.judicius.bcdimensions.worldgen.features.CaveMushroomFeature;
 import com.judicius.bcdimensions.worldgen.features.GlowShroomFeature;
+import com.judicius.bcdimensions.worldgen.features.MiningSeamConfig;
+import com.judicius.bcdimensions.worldgen.features.MiningSeamFeature;
+import com.judicius.bcdimensions.worldgen.features.MiningVeinConfig;
+import com.judicius.bcdimensions.worldgen.features.MiningVeinFeature;
+import com.judicius.bcdimensions.worldgen.features.MossyCobbleFormationFeature;
 import com.judicius.bcdimensions.worldgen.features.WaterBowlFeature;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -62,6 +71,9 @@ public final class BCRegistry {
     public static final DeferredRegister<Biome> BIOMES =
             DeferredRegister.create(Registries.BIOME, BCDimensions.MODID);
 
+    public static final DeferredRegister<CreativeModeTab> CREATIVE_TABS =
+            DeferredRegister.create(Registries.CREATIVE_MODE_TAB, BCDimensions.MODID);
+
     /* ===================== */
     /*        Blocks         */
     /* ===================== */
@@ -100,7 +112,7 @@ public final class BCRegistry {
             BLOCKS.register("cave_mycelium",
                     () -> new MyceliumBlock(
                             BlockBehaviour.Properties.copy(Blocks.MYCELIUM)
-                                    .lightLevel(state -> 4)
+                                    .lightLevel(state -> 8)
                     ));
 
     public static final RegistryObject<Item> CAVE_MYCELIUM_ITEM =
@@ -112,7 +124,7 @@ public final class BCRegistry {
                     () -> new InvertedCaveMyceliumBlock(
                             BlockBehaviour.Properties.copy(Blocks.MYCELIUM)
                                     .randomTicks()
-                                    .lightLevel(state -> 4)
+                                    .lightLevel(state -> 8)
                     ));
 
     public static final RegistryObject<Item> INVERTED_CAVE_MYCELIUM_ITEM =
@@ -159,6 +171,18 @@ public final class BCRegistry {
             FEATURES.register("glow_shroom",
                     () -> new GlowShroomFeature(NoneFeatureConfiguration.CODEC));
 
+    public static final RegistryObject<Feature<NoneFeatureConfiguration>> MOSSY_COBBLE_FORMATION =
+            FEATURES.register("mossy_cobble_formation",
+                    () -> new MossyCobbleFormationFeature(NoneFeatureConfiguration.CODEC));
+
+    public static final RegistryObject<Feature<MiningVeinConfig>> MINING_VEIN =
+            FEATURES.register("mining_vein",
+                    () -> new MiningVeinFeature(MiningVeinConfig.CODEC));
+
+    public static final RegistryObject<Feature<MiningSeamConfig>> MINING_SEAM =
+            FEATURES.register("mining_seam",
+                    () -> new MiningSeamFeature(MiningSeamConfig.CODEC));
+
     /* ===================== */
     /*       Carvers         */
     /* ===================== */
@@ -180,6 +204,24 @@ public final class BCRegistry {
                     () -> SpectralChunkGenerator.CODEC);
 
     /* ===================== */
+    /*     Creative Tab      */
+    /* ===================== */
+
+    public static final RegistryObject<CreativeModeTab> BC_DIMENSIONS_TAB =
+            CREATIVE_TABS.register("bc_dimensions_tab", () ->
+                    CreativeModeTab.builder()
+                            .title(Component.translatable("itemGroup.bc_dimensions"))
+                            .icon(() -> new ItemStack(SPECTRAL_KEY.get()))
+                            .displayItems((params, output) -> {
+                                output.accept(SPECTRAL_KEY.get());
+                                output.accept(PALETTE_BRUSH.get());
+                                output.accept(CAVE_MYCELIUM_ITEM.get());
+                                output.accept(INVERTED_CAVE_MYCELIUM_ITEM.get());
+                                output.accept(RADIANT_LICHEN_ITEM.get());
+                            })
+                            .build());
+
+    /* ===================== */
     /*    Registration Hook  */
     /* ===================== */
 
@@ -191,6 +233,8 @@ public final class BCRegistry {
         FEATURES.register(bus);
         CARVERS.register(bus);
         BIOMES.register(bus);
+        CREATIVE_TABS.register(bus);
+        BCPoiTypes.register(bus);
     }
 
     private BCRegistry() {}

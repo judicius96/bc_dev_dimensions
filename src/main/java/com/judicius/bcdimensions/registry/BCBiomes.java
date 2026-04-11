@@ -67,7 +67,7 @@ public final class BCBiomes {
     }
 
     // -------------------------------------------------------------------------
-    // Pale Moss Growth — stub, full design pending
+    // Pale Moss Growth
     // -------------------------------------------------------------------------
 
     private static Biome paleMossGrowth() {
@@ -75,7 +75,7 @@ public final class BCBiomes {
 
         BiomeSpecialEffects.Builder effects = new BiomeSpecialEffects.Builder()
                 .skyColor(0)
-                .fogColor(2696968) // placeholder — tune in game
+                .fogColor(2696968)
                 .waterColor(4159204)
                 .waterFogColor(329011)
                 .ambientMoodSound(new AmbientMoodSettings(
@@ -96,10 +96,6 @@ public final class BCBiomes {
     // Helpers
     // -------------------------------------------------------------------------
 
-    /**
-     * Adds a modded entity spawn by string resource location.
-     * Logs a warning and skips silently if the entity type is not registered.
-     */
     @SuppressWarnings("unchecked")
     private static void addModdedSpawn(MobSpawnSettings.Builder builder, MobCategory category,
                                        String entityId, int weight, int minCount, int maxCount) {
@@ -114,7 +110,6 @@ public final class BCBiomes {
         }
     }
 
-    // Force static field initialization at mod load time
     public static void init() {}
 
     private BCBiomes() {}

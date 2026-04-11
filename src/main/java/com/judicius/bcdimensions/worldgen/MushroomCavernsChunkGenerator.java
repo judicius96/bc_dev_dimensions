@@ -42,6 +42,16 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
             ResourceKey.create(Registries.BIOME, new ResourceLocation("regions_unexplored", "prismachasm"))
     );
 
+    // Biomes that get moss floor/ceiling treatment
+    private static final Set<ResourceKey<Biome>> MOSSY_BIOMES = Set.of(
+            ResourceKey.create(Registries.BIOME, new ResourceLocation("bc_dimensions", "mossy_cavern"))
+    );
+
+    // Biomes that get pale moss floor/ceiling treatment
+    private static final Set<ResourceKey<Biome>> PALE_BIOMES = Set.of(
+            ResourceKey.create(Registries.BIOME, new ResourceLocation("bc_dimensions", "pale_moss_growth"))
+    );
+
     public static final Codec<MushroomCavernsChunkGenerator> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
                     BiomeSource.CODEC.fieldOf("biome_source").forGetter(ChunkGenerator::getBiomeSource),
@@ -61,6 +71,9 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
     private final List<Block> ceilingBlocks;
     private final List<Block> sublayerBlocks;
 
+    // Pale moss block — resolved at construction, falls back to stone if VanillaBackport absent
+    private final Block paleMossBlock;
+
     public MushroomCavernsChunkGenerator(BiomeSource biomeSource, Holder<NoiseGeneratorSettings> settings) {
         super(biomeSource, settings);
         this.generatorSettings = settings;
@@ -74,6 +87,7 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
         this.floorBlocks    = buildFloorBlocks();
         this.ceilingBlocks  = buildCeilingBlocks();
         this.sublayerBlocks = buildSublayerBlocks();
+        this.paleMossBlock  = buildPaleMossBlock();
     }
 
     // -------------------------------------------------------------------------
@@ -92,6 +106,12 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
             if (peatDirt != null && peatDirt != Blocks.AIR) return peatDirt;
         }
         return Blocks.PODZOL;
+    }
+
+    private static Block buildPaleMossBlock() {
+        Block block = ForgeRegistries.BLOCKS.getValue(
+                new ResourceLocation("minecraft", "pale_moss_block"));
+        return (block != null && block != Blocks.AIR) ? block : Blocks.STONE;
     }
 
     private static List<Block> buildFloorBlocks() {
@@ -197,11 +217,20 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
 
                 ceilingY = Math.min(ceilingY, topBedrockStartY - 3);
 
-                // Check if this column's biome is excluded from our replacement
+                // Determine biome for this column
                 BlockPos samplePos = new BlockPos(worldX, floorY, worldZ);
                 Holder<Biome> biomeHolder = region.getBiome(samplePos);
+
                 boolean excluded = biomeHolder.unwrapKey()
                         .map(EXCLUDED_BIOMES::contains)
+                        .orElse(false);
+
+                boolean mossy = biomeHolder.unwrapKey()
+                        .map(MOSSY_BIOMES::contains)
+                        .orElse(false);
+
+                boolean pale = biomeHolder.unwrapKey()
+                        .map(PALE_BIOMES::contains)
                         .orElse(false);
 
                 for (int y = minBuildY; y < maxBuildY; y++) {
@@ -209,17 +238,19 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
                     BlockState state;
                     if (excluded) {
                         state = getVanillaBlockStateForPosition(y, minBuildY, topBedrockStartY, floorY, ceilingY);
+                    } else if (mossy) {
+                        state = getMossyBlockStateForPosition(y, floorY, ceilingY, minBuildY, topBedrockStartY, worldX, worldZ);
+                    } else if (pale) {
+                        state = getPaleMossyBlockStateForPosition(y, floorY, ceilingY, minBuildY, topBedrockStartY);
                     } else {
-                        state = getBlockStateForPosition(
-                                y, floorY, ceilingY, minBuildY, topBedrockStartY,
-                                worldX, worldZ
-                        );
+                        state = getBlockStateForPosition(y, floorY, ceilingY, minBuildY, topBedrockStartY, worldX, worldZ);
                     }
                     chunk.setBlockState(pos, state, false);
                 }
 
                 // Hanging roots — 25% chance below rooted dirt on ceiling
-                if (!excluded) {
+                // Skipped for mossy and pale biomes — hanging vegetation handled by placed features
+                if (!excluded && !mossy && !pale) {
                     BlockPos ceilingPos = new BlockPos(worldX, ceilingY, worldZ);
                     if (chunk.getBlockState(ceilingPos).is(Blocks.ROOTED_DIRT)) {
                         BlockPos rootsPos = ceilingPos.below();
@@ -240,51 +271,48 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
             int minBuildY, int topBedrockStartY,
             int worldX, int worldZ
     ) {
-        // Bedrock floor
-        if (y <= minBuildY + 4) {
-            return Blocks.BEDROCK.defaultBlockState();
-        }
+        if (y <= minBuildY + 4) return Blocks.BEDROCK.defaultBlockState();
+        if (y >= topBedrockStartY) return Blocks.BEDROCK.defaultBlockState();
+        if (y <= 32) return Blocks.DEEPSLATE.defaultBlockState();
+        if (y < floorY - 1 && y >= floorY - 6) return getSublayerBlock(worldX, y, worldZ);
+        if (y < floorY - 6) return Blocks.STONE.defaultBlockState();
+        if (y == floorY - 1) return getFloorSurfaceBlock(worldX, worldZ);
+        if (y >= floorY && y < ceilingY) return Blocks.AIR.defaultBlockState();
+        if (y == ceilingY) return getCeilingSurfaceBlock(worldX, worldZ);
+        if (y > ceilingY && y < topBedrockStartY) return Blocks.STONE.defaultBlockState();
+        return Blocks.STONE.defaultBlockState();
+    }
 
-        // Bedrock ceiling cap
-        if (y >= topBedrockStartY) {
-            return Blocks.BEDROCK.defaultBlockState();
-        }
+    private BlockState getMossyBlockStateForPosition(
+            int y, int floorY, int ceilingY,
+            int minBuildY, int topBedrockStartY,
+            int worldX, int worldZ
+    ) {
+        if (y <= minBuildY + 4) return Blocks.BEDROCK.defaultBlockState();
+        if (y >= topBedrockStartY) return Blocks.BEDROCK.defaultBlockState();
+        if (y <= 32) return Blocks.DEEPSLATE.defaultBlockState();
+        if (y < floorY - 1 && y >= floorY - 6) return getSublayerBlock(worldX, y, worldZ);
+        if (y < floorY - 6) return Blocks.STONE.defaultBlockState();
+        if (y == floorY - 1 || y == floorY - 2 || y == floorY - 3) return Blocks.MOSS_BLOCK.defaultBlockState();
+        if (y >= floorY && y < ceilingY) return Blocks.AIR.defaultBlockState();
+        if (y == ceilingY) return Blocks.MOSS_BLOCK.defaultBlockState();
+        if (y > ceilingY && y < topBedrockStartY) return Blocks.STONE.defaultBlockState();
+        return Blocks.STONE.defaultBlockState();
+    }
 
-        // Deepslate layer
-        if (y <= 32) {
-            return Blocks.DEEPSLATE.defaultBlockState();
-        }
-
-        // Below floor: sublayer 5 blocks deep
-        if (y < floorY - 1 && y >= floorY - 6) {
-            return getSublayerBlock(worldX, y, worldZ);
-        }
-
-        // Below sublayer: solid stone
-        if (y < floorY - 6) {
-            return Blocks.STONE.defaultBlockState();
-        }
-
-        // Floor surface block
-        if (y == floorY - 1) {
-            return getFloorSurfaceBlock(worldX, worldZ);
-        }
-
-        // Cave air
-        if (y >= floorY && y < ceilingY) {
-            return Blocks.AIR.defaultBlockState();
-        }
-
-        // Ceiling surface block
-        if (y == ceilingY) {
-            return getCeilingSurfaceBlock(worldX, worldZ);
-        }
-
-        // Above ceiling: solid stone up to bedrock cap
-        if (y > ceilingY && y < topBedrockStartY) {
-            return Blocks.STONE.defaultBlockState();
-        }
-
+    private BlockState getPaleMossyBlockStateForPosition(
+            int y, int floorY, int ceilingY,
+            int minBuildY, int topBedrockStartY
+    ) {
+        BlockState paleMoss = paleMossBlock.defaultBlockState();
+        if (y <= minBuildY + 4) return Blocks.BEDROCK.defaultBlockState();
+        if (y >= topBedrockStartY) return Blocks.BEDROCK.defaultBlockState();
+        if (y <= 32) return Blocks.DEEPSLATE.defaultBlockState();
+        if (y < floorY - 6) return Blocks.STONE.defaultBlockState();
+        if (y == floorY - 1 || y == floorY - 2 || y == floorY - 3) return paleMoss;
+        if (y >= floorY && y < ceilingY) return Blocks.AIR.defaultBlockState();
+        if (y == ceilingY) return paleMoss;
+        if (y > ceilingY && y < topBedrockStartY) return Blocks.STONE.defaultBlockState();
         return Blocks.STONE.defaultBlockState();
     }
 
@@ -318,7 +346,6 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
         if (y <= minBuildY + 4) return Blocks.BEDROCK.defaultBlockState();
         if (y >= topBedrockStartY) return Blocks.BEDROCK.defaultBlockState();
         if (y <= 32) return Blocks.DEEPSLATE.defaultBlockState();
-        // Preserve the open Y band even in excluded biomes
         if (y >= floorY && y < ceilingY) return Blocks.AIR.defaultBlockState();
         return Blocks.STONE.defaultBlockState();
     }
@@ -337,8 +364,6 @@ public class MushroomCavernsChunkGenerator extends NoiseBasedChunkGenerator {
     public void applyCarvers(WorldGenRegion region, long seed, RandomState random,
                              BiomeManager biomeManager, StructureManager structureManager,
                              ChunkAccess chunk, GenerationStep.Carving step) {
-        // Only run AIR carvers — our MiningCaveCarver skips the main cavern Y band
-        // LIQUID step disabled to prevent lava/water flooding the dimension
         if (step == GenerationStep.Carving.AIR) {
             super.applyCarvers(region, seed, random, biomeManager, structureManager, chunk, step);
         }

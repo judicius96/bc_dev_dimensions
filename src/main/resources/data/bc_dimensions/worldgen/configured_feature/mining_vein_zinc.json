@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "create:zinc_ore",
+    "raw_block": "create:raw_zinc_block",
+    "y_min": -20,
+    "y_max": 55
+  }
+}

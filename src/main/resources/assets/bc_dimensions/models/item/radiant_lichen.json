@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "bc_dimensions:block/glow_lichen"
+    "layer0": "bc_dimensions:block/radiant_lichen"
   }
 }

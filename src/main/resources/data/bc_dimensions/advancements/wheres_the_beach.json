@@ -1,0 +1,27 @@
+{
+  "display": {
+    "icon": { "item": "minecraft:sand" },
+    "title": { "translate": "advancements.bc_dimensions.wheres_the_beach.title" },
+    "description": { "translate": "advancements.bc_dimensions.wheres_the_beach.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "parent": "bc_dimensions:root",
+  "criteria": {
+    "light_sand_portal": {
+      "trigger": "minecraft:item_used_on_block",
+      "conditions": {
+        "location": {
+          "block": {
+            "blocks": ["bc_dimensions:sand_portal"]
+          }
+        },
+        "item": {
+          "items": ["minecraft:flint_and_steel"]
+        }
+      }
+    }
+  }
+}

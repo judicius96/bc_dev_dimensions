@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "thermal:silver_ore",
+    "raw_block": "thermal:raw_silver_block",
+    "y_min": -20,
+    "y_max": 55
+  }
+}

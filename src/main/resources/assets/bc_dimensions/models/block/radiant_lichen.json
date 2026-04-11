@@ -1,17 +1,6 @@
 {
-  "ambientocclusion": false,
+  "parent": "minecraft:block/thin_block",
   "textures": {
-    "particle": "bc_dimensions:block/glow_lichen",
-    "texture": "bc_dimensions:block/glow_lichen"
-  },
-  "elements": [
-    {
-      "from": [0, 0, 0],
-      "to": [16, 16, 0],
-      "faces": {
-        "north": {"uv": [0, 0, 16, 16], "texture": "#texture"},
-        "south": {"uv": [0, 0, 16, 16], "texture": "#texture"}
-      }
-    }
-  ]
+    "texture": "bc_dimensions:block/radiant_lichen"
+  }
 }

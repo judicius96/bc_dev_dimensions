@@ -1,0 +1,10 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "ingredients": [
+    { "item": "bc_dimensions:inverted_cave_mycelium" }
+  ],
+  "result": {
+    "item": "bc_dimensions:cave_mycelium",
+    "count": 1
+  }
+}

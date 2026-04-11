@@ -10,9 +10,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.NetherPortalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.List;
@@ -64,33 +64,6 @@ final class PortalUtils {
         return true;
     }
 
-    static BlockPos findExistingPortal(Level level,
-                                       BlockPos origin,
-                                       int radius,
-                                       Block portalBlock,
-                                       Direction.Axis axis) {
-        BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
-                    cursor.set(origin.getX() + x, origin.getY() + y, origin.getZ() + z);
-                    BlockState state = level.getBlockState(cursor);
-
-                    if (!state.is(portalBlock)) continue;
-
-                    if (axis != null && state.hasProperty(NetherPortalBlock.AXIS)) {
-                        if (state.getValue(NetherPortalBlock.AXIS) != axis) continue;
-                    }
-
-                    return cursor.immutable();
-                }
-            }
-        }
-
-        return null;
-    }
-
     private static Block getFrameBlock(List<? extends String> configList, Block fallback) {
         if (configList == null || configList.isEmpty()) return fallback;
         ResourceLocation id = ResourceLocation.tryParse(configList.get(0));
@@ -129,6 +102,11 @@ final class PortalUtils {
         for (int z = 1; z <= 2; z++)
             for (int y = 1; y <= 3; y++)
                 level.setBlock(base.offset(0, y, z), portal, 3);
+    }
+
+    static BlockPos findSurfacePos(ServerLevel level, int x, int z) {
+        int y = level.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z);
+        return new BlockPos(x, y, z);
     }
 
     static void buildMiningReturnPortal(ServerLevel level, BlockPos base) {

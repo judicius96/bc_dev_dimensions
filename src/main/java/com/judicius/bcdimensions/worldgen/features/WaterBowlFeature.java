@@ -1,13 +1,18 @@
 package com.judicius.bcdimensions.worldgen.features;
 
+import com.judicius.bcdimensions.registry.BCRegistry;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.WorldGenLevel;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
+import net.minecraftforge.registries.ForgeRegistries;
 
 public class WaterBowlFeature extends Feature<NoneFeatureConfiguration> {
 
@@ -21,67 +26,151 @@ public class WaterBowlFeature extends Feature<NoneFeatureConfiguration> {
         BlockPos origin = context.origin();
         RandomSource random = context.random();
 
-        // Check if origin is on solid ground
         if (!level.getBlockState(origin.below()).isSolidRender(level, origin.below())) {
             return false;
         }
 
-        // Random bowl size between 5 and 8
-        int radius = 2 + random.nextInt(2); // radius 2-3 = diameter 5-7 (close enough to 5-8)
+        Block fireflyBushBlock = ForgeRegistries.BLOCKS.getValue(
+                new ResourceLocation("minecraft", "firefly_bush"));
+        boolean hasFireflyBush = fireflyBushBlock != null && fireflyBushBlock != Blocks.AIR;
 
-        // Create bowl
-        for (int x = -radius - 1; x <= radius + 1; x++) {
-            for (int z = -radius - 1; z <= radius + 1; z++) {
-                BlockPos pos = origin.offset(x, 0, z);
-                double distance = Math.sqrt(x * x + z * z);
+        BlockState radiantLichenState = BCRegistry.RADIANT_LICHEN.get().defaultBlockState();
 
-                // Natural irregular edges
-                double noiseOffset = (random.nextDouble() - 0.5) * 0.8;
-                double effectiveRadius = radius + noiseOffset;
+        int radius = 5 + random.nextInt(3);
+        int maxDepth = 3;
+        int surfaceY = origin.getY();
 
-                if (distance <= effectiveRadius) {
-                    // Calculate depth based on distance from center
-                    int depth;
-                    if (distance < effectiveRadius * 0.3) {
-                        depth = 3; // Center: 3 blocks deep
-                    } else if (distance < effectiveRadius * 0.6) {
-                        depth = 2; // Middle ring: 2 blocks deep
-                    } else if (distance < effectiveRadius * 0.9) {
-                        depth = 1; // Outer ring: 1 block deep
-                    } else {
-                        depth = 0; // Edge: mud only
-                    }
+        int size = (radius + 3) * 2 + 1;
+        double[][] noiseMap = new double[size][size];
+        for (int xi = 0; xi < size; xi++) {
+            for (int zi = 0; zi < size; zi++) {
+                noiseMap[xi][zi] = (random.nextDouble() - 0.5) * 1.5;
+            }
+        }
 
-                    // Dig out bowl
-                    for (int y = 0; y > -depth; y--) {
-                        level.setBlock(pos.offset(0, y, 0), Blocks.AIR.defaultBlockState(), 3);
-                    }
+        int cx = origin.getX();
+        int cz = origin.getZ();
 
-                    // Place water at bottom of depression
-                    if (depth > 0) {
-                        level.setBlock(pos.offset(0, -depth, 0), Blocks.WATER.defaultBlockState(), 3);
-                    }
+        // Pass 1 — mud shell (radius+1 hemisphere)
+        for (int x = -(radius + 1); x <= (radius + 1); x++) {
+            for (int z = -(radius + 1); z <= (radius + 1); z++) {
+                int xi = x + radius + 2;
+                int zi = z + radius + 2;
+                double noise = noiseMap[xi][zi];
+                double effectiveRadius = radius + noise;
 
-                    // Mud edges (only where depth is 0 or at water edge)
-                    if (depth == 0 || (depth == 1 && distance > effectiveRadius * 0.7)) {
-                        level.setBlock(pos, Blocks.MUD.defaultBlockState(), 3);
-                    }
+                for (int y = 0; y >= -(maxDepth + 1); y--) {
+                    double nx = x / (effectiveRadius + 1);
+                    double nz = z / (effectiveRadius + 1);
+                    double ny = y / (double)(maxDepth + 1);
+                    double dist = Math.sqrt(nx * nx + nz * nz + ny * ny);
 
-                    // Lily pads on water surface
-                    if (depth > 0 && random.nextFloat() < 0.3) {
-                        BlockPos lilyPos = pos.offset(0, -depth + 1, 0);
-                        if (level.getBlockState(lilyPos).isAir() &&
-                                level.getBlockState(lilyPos.below()).is(Blocks.WATER)) {
-                            level.setBlock(lilyPos, Blocks.LILY_PAD.defaultBlockState(), 3);
+                    if (dist <= 1.0) {
+                        BlockPos pos = new BlockPos(cx + x, surfaceY + y, cz + z);
+                        if (!level.getBlockState(pos).isAir()) {
+                            level.setBlock(pos, Blocks.MUD.defaultBlockState(), 3);
                         }
                     }
+                }
+            }
+        }
 
-                    // Firefly bushes around outer edge
-                    if (depth == 0 && random.nextFloat() < 0.15) {
-                        BlockPos bushPos = pos.above();
-                        if (level.getBlockState(bushPos).isAir()) {
-                            // Replace with your firefly bush block
-                            level.setBlock(bushPos, Blocks.FLOWERING_AZALEA.defaultBlockState(), 3); // TEMP placeholder
+        // Pass 2 — carve air interior (radius hemisphere) + clear 3 above
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                int xi = x + radius + 2;
+                int zi = z + radius + 2;
+                double noise = noiseMap[xi][zi];
+                double effectiveRadius = radius + noise;
+
+                for (int y = 0; y >= -maxDepth; y--) {
+                    double nx = x / effectiveRadius;
+                    double nz = z / effectiveRadius;
+                    double ny = y / (double) maxDepth;
+                    double dist = Math.sqrt(nx * nx + nz * nz + ny * ny);
+
+                    if (dist <= 1.0) {
+                        BlockPos pos = new BlockPos(cx + x, surfaceY + y, cz + z);
+                        level.setBlock(pos, Blocks.AIR.defaultBlockState(), 3);
+
+                        // Clear 3 blocks above surface opening
+                        if (y == 0) {
+                            for (int ay = 1; ay <= 3; ay++) {
+                                BlockPos above = new BlockPos(cx + x, surfaceY + ay, cz + z);
+                                if (!level.getBlockState(above).isAir()) {
+                                    level.setBlock(above, Blocks.AIR.defaultBlockState(), 3);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Pass 3 — fill air below surfaceY with water
+        for (int x = -radius; x <= radius; x++) {
+            for (int z = -radius; z <= radius; z++) {
+                int xi = x + radius + 2;
+                int zi = z + radius + 2;
+                double noise = noiseMap[xi][zi];
+                double effectiveRadius = radius + noise;
+
+                for (int y = -1; y >= -maxDepth; y--) {
+                    double nx = x / effectiveRadius;
+                    double nz = z / effectiveRadius;
+                    double ny = y / (double) maxDepth;
+                    double dist = Math.sqrt(nx * nx + nz * nz + ny * ny);
+
+                    if (dist <= 1.0) {
+                        BlockPos pos = new BlockPos(cx + x, surfaceY + y, cz + z);
+                        if (level.getBlockState(pos).isAir()) {
+                            level.setBlock(pos, Blocks.WATER.defaultBlockState(), 3);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Pass 4 — decorations
+        for (int x = -(radius + 1); x <= (radius + 1); x++) {
+            for (int z = -(radius + 1); z <= (radius + 1); z++) {
+                int xi = x + radius + 2;
+                int zi = z + radius + 2;
+                double noise = noiseMap[xi][zi];
+                double effectiveRadius = radius + noise;
+
+                double nx = x / effectiveRadius;
+                double nz = z / effectiveRadius;
+                double dist = Math.sqrt(nx * nx + nz * nz);
+
+                if (dist > 1.2) continue;
+
+                BlockPos surfacePos = new BlockPos(cx + x, surfaceY, cz + z);
+                BlockPos belowSurface = surfacePos.below();
+
+                // Lily pads on water surface
+                if (level.getBlockState(surfacePos).isAir() &&
+                        level.getBlockState(belowSurface).is(Blocks.WATER) &&
+                        random.nextFloat() < 0.25f) {
+                    level.setBlock(surfacePos, Blocks.LILY_PAD.defaultBlockState(), 3);
+                }
+
+                // Firefly bushes on mud at surface level
+                if (level.getBlockState(surfacePos).is(Blocks.MUD) &&
+                        hasFireflyBush && random.nextFloat() < 0.45f) {
+                    BlockPos bushPos = surfacePos.above();
+                    if (level.getBlockState(bushPos).isAir()) {
+                        level.setBlock(bushPos, fireflyBushBlock.defaultBlockState(), 3);
+                    }
+                }
+
+                // Radiant lichen on mud walls below surface
+                if (random.nextFloat() < 0.15f) {
+                    for (int y = -1; y >= -maxDepth; y--) {
+                        BlockPos wallPos = new BlockPos(cx + x, surfaceY + y, cz + z);
+                        if (level.getBlockState(wallPos).is(Blocks.MUD)) {
+                            level.setBlock(wallPos, radiantLichenState, 3);
+                            break;
                         }
                     }
                 }

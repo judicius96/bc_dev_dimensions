@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "minecraft:redstone_ore",
+    "raw_block": "minecraft:redstone_block",
+    "y_min": 160,
+    "y_max": 220
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "type": "bc_dimensions:mining_vein",
+  "config": {
+    "ore_block": "minecraft:diamond_ore",
+    "raw_block": "minecraft:diamond_ore",
+    "y_min": 240,
+    "y_max": 320
+  }
+}
