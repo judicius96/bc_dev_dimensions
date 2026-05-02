@@ -50,23 +50,23 @@
   },
 
   "features": [
-    [],                                                     // 0 RAW_GENERATION
-    [],                                                     // 1 LAKES (keep empty: no lakes)
-    [                                                       // 2 LOCAL_MODIFICATIONS
+    [],
+    [],
+    [
       "minecraft:disk_sand",
       "minecraft:disk_clay"
     ],
-    [                                                       // 3 UNDERGROUND_STRUCTURES
+    [
       "minecraft:fossil_upper",
       "minecraft:fossil_lower"
     ],
-    [],                                                     // 4 SURFACE_STRUCTURES
-    [],                                                     // 5 UNDERGROUND_ORES (leave empty if you don't want vanilla ores)
-    [],                                                     // 6 UNDERGROUND_DECORATION
-    [                                                       // 7 VEGETAL_DECORATION
+    [],
+    [],
+    ["geodes:gypsum_patch"],
+    [
       "minecraft:patch_dead_bush_2",
       "minecraft:patch_cactus_desert"
     ],
-    [ "minecraft:freeze_top_layer" ]                        // 8 TOP_LAYER_MODIFICATION
+    [ "minecraft:freeze_top_layer" ]
   ]
 }

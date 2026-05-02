@@ -2,6 +2,7 @@ package com.judicius.bcdimensions.registry;
 
 import com.judicius.bcdimensions.BCDimensions;
 import com.judicius.bcdimensions.block.InvertedCaveMyceliumBlock;
+import com.judicius.bcdimensions.block.PaletteFloorBlock;
 import com.judicius.bcdimensions.item.SpectralKeyItem;
 import com.judicius.bcdimensions.palette.PaletteBrush;
 import com.judicius.bcdimensions.portals.BCPoiTypes;
@@ -102,7 +103,7 @@ public final class BCRegistry {
 
     public static final RegistryObject<Block> PALETTE_FLOOR =
             BLOCKS.register("palette_block",
-                    () -> new Block(BlockBehaviour.Properties.of()
+                    () -> new PaletteFloorBlock(BlockBehaviour.Properties.of()
                             .strength(-1.0F, 3600000.0F)
                             .lightLevel(state -> 3)
                             .noOcclusion()

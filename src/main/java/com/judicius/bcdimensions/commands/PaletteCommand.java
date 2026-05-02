@@ -221,6 +221,16 @@ public class PaletteCommand {
             if (id != null) {
                 String path = id.getPath();
 
+                //@modid search
+                if (filter.startsWith("@")) {
+                    if (!id.getNamespace().equals(filter.substring(1))) return;
+                } else {
+                    if (!containsWholeWord(path, filter)) return;
+                }
+
+                if (isNonBuildingBlock(block, path)) return;
+
+                //keyword search
                 if (!containsWholeWord(path, filter)) return;
                 if (isNonBuildingBlock(block, path)) return;
 
@@ -269,8 +279,12 @@ public class PaletteCommand {
 
                 BlockState state = block.defaultBlockState();
 
-                if (state.hasProperty(BlockStateProperties.WATERLOGGED)) {
-                    state = state.setValue(BlockStateProperties.WATERLOGGED, false);
+                for (net.minecraft.world.level.block.state.properties.Property<?> prop : block.getStateDefinition().getProperties()) {
+                    if (prop.getName().equals("waterlogged") &&
+                            prop instanceof net.minecraft.world.level.block.state.properties.BooleanProperty boolProp) {
+                        state = state.setValue(boolProp, false);
+                        break;
+                    }
                 }
 
                 if (block instanceof LeavesBlock) {
